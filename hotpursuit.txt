@@ -1,0 +1,7 @@
+"hotpursuit"
+{
+	"base"		"sandbox"
+	"title"		"Hot Pursuit"
+	"menusystem"	"1"
+	"version" 	"0.002"
+}

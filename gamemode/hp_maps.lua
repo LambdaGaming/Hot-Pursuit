@@ -13,7 +13,10 @@ HotPursuitMaps["rp_rockford_v2b"] = {
 		PoliceSpawns = { --Positions of the police cars at the start of the race
 
 		},
-		BlockSpawns = {
+		BlockSpawns = { --Positions of the barriers that prevent racers from going off-course
+
+		},
+		FinishPos = { --Position of the finish line
 
 		}
 	}
@@ -27,17 +30,8 @@ HotPursuitMaps["rp_rockford_v2b"] = {
 		},
 		BlockSpawns = {
 
-		}
-	}
-	Type[3] = {
-		Name = "Be The Cop (4v1)",
-		CarSpawns = {
-
 		},
-		PoliceSpawns = {
-
-		},
-		BlockSpawns = {
+		FinishPos = {
 
 		}
 	}

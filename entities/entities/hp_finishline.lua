@@ -34,8 +34,14 @@ function ENT:Initialize()
 	end
 end
 
-function ENT:Think()
-	if !GetGlobalBool( "HP_RaceStarted" ) then return end
+function ENT:StartTouch( ent )
+	if CLIENT then return end
+	if ent:IsVehicle() and IsValid( ent:GetDriver() ) and GetGlobalBool( "RaceStarted" ) and !ent.Finished then
+		ent.Finished = true
+		for k,v in pairs( player.GetAll() ) do
+			HPNotify( v, ent:GetDriver():Nick().." has finished!" )
+		end
+	end
 end
 
 if CLIENT then
