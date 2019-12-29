@@ -3,7 +3,7 @@ AddCSLuaFile()
 
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
-ENT.PrintName = "Finish Line"
+ENT.PrintName = "Barrier"
 ENT.Author = "Lambda Gaming"
 ENT.Spawnable = true
 ENT.AdminOnly = true
@@ -20,27 +20,24 @@ function ENT:SpawnFunction( ply, tr, name )
 end
 
 function ENT:Initialize()
-    self:SetModel( "models/hunter/plates/plate3x8.mdl" )
+    self:SetModel( "models/props_c17/concrete_barrier001a.mdl" )
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
-	self:SetMaterial( "phoenix_storms/stripes" )
 	if SERVER then
 		self:SetUseType( SIMPLE_USE )
-	end
-end
+		constraint.NoCollide( self, game.GetWorld(), 0, 0 )
+		local e = ents.Create( "prop_dynamic" )
+		e:SetModel( self:GetModel() )
+		e:SetPos( self:GetPos() + Vector( 0, 150, 0 ) )
+		e:SetAngles( self:GetAngles() )
+		e:SetParent( self )
+		e:Spawn()
 
-function ENT:StartTouch( ent )
-	if CLIENT then return end
-	if ent:IsVehicle() and IsValid( ent:GetDriver() ) and GetGlobalBool( "RaceStarted" ) and !ent.Finished then
-		ent.Finished = true
-		for k,v in pairs( player.GetAll() ) do
-			HPNotify( v, ent:GetDriver():Nick().." has finished!" )
-		end
+		local e2 = ents.Create( "prop_dynamic" )
+		e2:SetModel( self:GetModel() )
+		e2:SetPos( self:GetPos() + Vector( 0, -150, 0 ) )
+		e2:SetAngles( self:GetAngles() )
+		e2:SetParent( self )
+		e2:Spawn()
 	end
-end
-
-if CLIENT then
-    function ENT:Draw()
-        self:DrawModel()
-    end
 end

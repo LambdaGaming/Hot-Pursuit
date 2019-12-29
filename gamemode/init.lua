@@ -3,6 +3,7 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
 include( "shared.lua" )
+include( "hp_maps.lua" )
 
 RacerTable = {}
 
@@ -82,44 +83,56 @@ function HPPlaySound( ply, sound )
 end
 
 function StartRace( type, timelimit )
-	local e = ents.Create( "hp_finishline" )
-	local countdown = 3
+	local mapconfig = HotPursuitMaps[game.GetMap()][type]
 	for k,v in RandomPairs( player.GetAll() ) do --Randomize players so everyone's not in the same spot every race
 		if !v:InVehicle() then
 			v:ChatPrint( "Attempted to start a race but not all players are in their vehicles!" )
 			return
 		end
 		if v:GetNWBool( "IsCop" ) then
-			for a,b in pairs( HotPursuitMaps[game.GetMap()][type].PoliceSpawns ) do
+			for a,b in pairs( mapconfig.PoliceSpawns ) do
 				local veh = v:GetVehicle()
 				veh:SetPos( b[1] )
 				veh:SetAngles( b[2] )
 			end
 		else
-			for a,b in pairs( HotPursuitMaps[game.GetMap()][type].CarSpawns ) do
+			for a,b in pairs( mapconfig.CarSpawns ) do
 				local veh = v:GetVehicle()
 				veh:SetPos( b[1] )
 				veh:SetAngles( b[2] )
 				table.insert( RacerTable, v )
 			end
 		end
-		HPNotify( v, "The race will begin in 10 seconds!" )
-		timer.Simple( 7, 1, function()
-			timer.Create( "RaceCountdown", 3, 4, function()
-				if countdown > 0 then
-					HPNotify( v, tostring( countdown ) ) --Will eventually be converted to a HUD element
-					HPPlaySound( v, "buttons/blip1.wav" )
-					countdown = countdown - 1
-				else
-					HPNotify( v, "GO!" )
-					HPPlaySound( v, "plats/elevbell1.wav" )
-				end
-			end )
+
+		local countdown = 3
+		HPNotify( v, "The race will begin soon!" )
+		timer.Create( "RaceCountdown", 1, 4, function()
+			if countdown > 0 then
+				HPNotify( v, tostring( countdown ) ) --Will eventually be converted to a HUD element
+				HPPlaySound( v, "buttons/blip1.wav" )
+				countdown = countdown - 1
+			else
+				HPNotify( v, "GO!" )
+				HPPlaySound( v, "plats/elevbell1.wav" )
+			end
 		end )
 	end
+	
+	local e = ents.Create( "hp_finishline" )
+	e:SetPos( mapconfig.FinishPos.Pos )
+	e:SetAngles( mapconfig.FinishPos.Ang )
+	e:Spawn()
+
+	for k,v in ipairs( mapconfig.BlockSpawns ) do
+		local e = ents.Create( "hp_barrier" )
+		e:SetPos( v[1] )
+		e:SetAngles( v[2] )
+		e:Spawn()
+	end
+	SetGlobalBool( "RaceStarted", true )
 end
 
-function EndRace()
+function EndRace( finishline )
 	for k,v in pairs( ents.GetAll() ) do
 		local removedents = {
 			["hp_finishline"] = true,
@@ -128,13 +141,17 @@ function EndRace()
 		}
 		if v:IsVehicle() then v.Finished = false end
 		if removedents[v:GetClass()] then v:Remove() end
-		RacerTable = {}
 	end
+	RacerTable = {}
 end
 
 hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 	local split = string.Split( text, " " )
 	if split[1] == "!start" then
+		if GetGlobalBool( "RaceStarted" ) then
+			HPNotify( ply, "A race has already started!" )
+			return ""
+		end
 		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
 			HPNotify( ply, "The track type you selected doesn't exist." )
 			return ""
@@ -145,5 +162,12 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			StartRace( tonumber( split[2] ) )
 		end
 		return ""
+	end
+	if split[1] == "!end" then
+		if !GetGlobalBool( "RaceStarted" ) then
+			HPNotify( ply, "There is no race to end!" )
+			return ""
+		end
+		EndRace()
 	end
 end )
