@@ -1,5 +1,7 @@
 
 include( "shared.lua" )
+include( "hp_maps.lua" )
+include( "hp_config.lua" )
 
 hook.Add( "SpawnMenuOpen", "HPSpawnMenu", function()
 	local ply = LocalPlayer()
@@ -14,6 +16,16 @@ end
 net.Receive( "HPNotify", function( len, ply )
 	local text = net.ReadString()
 	HPNotify( ply, text )
+end )
+
+local function HPNotifyAll( text )
+	local textcolor1 = Color( 0, 0, 180, 255 )
+	local textcolor2 = color_white
+	chat.AddText( textcolor1, "[Hot Pursuit]: ", textcolor2, text )
+end
+net.Receive( "HPNotifyAll", function( len, ply )
+	local text = net.ReadString()
+	HPNotifyAll( text )
 end )
 
 net.Receive( "HPPlaySound", function( len, ply )

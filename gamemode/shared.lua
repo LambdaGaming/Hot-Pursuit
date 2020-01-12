@@ -3,7 +3,7 @@ GM.Name 	= "Hot Pursuit"
 GM.Author 	= "Lambda Gaming"
 GM.Email 	= "N/A"
 GM.Website 	= "N/A"
-local version = 0.02
+HP_VERSION = 0.03
 
 DeriveGamemode( "sandbox" )
 
@@ -60,4 +60,4 @@ TEAM_POLICE = {
 	}
 }
 
-print( "Hot Pursuit version "..version.." successfully loaded." )
+MsgC( Color( 0, 0, 255 ), "\nHot Pursuit version "..version.." successfully loaded.\n" )

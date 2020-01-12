@@ -11,7 +11,7 @@ ENT.Category = "Hot Pursuit"
 
 function ENT:SpawnFunction( ply, tr, name )
 	if !tr.Hit then return end
-	local SpawnPos = tr.HitPos + tr.HitNormal * 5
+	local SpawnPos = tr.HitPos + tr.HitNormal
 	local ent = ents.Create( name )
 	ent:SetPos( SpawnPos )
 	ent:Spawn()
@@ -24,8 +24,13 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
 	if SERVER then
-		self:SetUseType( SIMPLE_USE )
-		constraint.NoCollide( self, game.GetWorld(), 0, 0 )
+		self:PhysicsInit( SOLID_VPHYSICS )
+		local phys = self:GetPhysicsObject()
+		if IsValid( phys ) then
+			phys:Wake()
+			phys:EnableMotion( false )
+		end
+
 		local e = ents.Create( "prop_dynamic" )
 		e:SetModel( self:GetModel() )
 		e:SetPos( self:GetPos() + Vector( 0, 150, 0 ) )
@@ -39,5 +44,20 @@ function ENT:Initialize()
 		e2:SetAngles( self:GetAngles() )
 		e2:SetParent( self )
 		e2:Spawn()
+	end
+end
+
+if SERVER then
+	function ENT:Think()
+		for k,v in pairs( ents.FindInSphere( self:GetPos(), 200 ) ) do
+			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) then
+				local driver = v:GetDriver()
+				if driver.CutCooldown and driver.CutCooldown > CurTime() then return end
+				HPNotifyAll( "Possible track cutting from "..driver:Nick().."." )
+				driver.CutCooldown = CurTime() + 5
+			end
+		end
+		self:NextThink( CurTime() + 1 )
+		return true
 	end
 end

@@ -4,6 +4,8 @@ HotPursuitMaps = {}
 HotPursuitMaps["rp_rockford_v2b"] = {
 	[1] = {
 		Name = "Standard",
+		Description = "Standard track layout around Rockford. Supports up to 16 players.",
+		UseTimer = false,
 		CarSpawns = { --Positions of the cars at the start of the race
 			{ Vector( -6115, -6936, 0 ), Angle( 0, 90, 0 ) },
 			{ Vector( -6115, -6699, 0 ), Angle( 0, 90, 0 ) },
@@ -33,7 +35,9 @@ HotPursuitMaps["rp_rockford_v2b"] = {
 		}
 	},
 	[2] = {
-		Name = "Reversed",
+		Name = "Single Racer Freeroam",
+		Description = "Only 1 racer spawn, the rest of the players are cops. No barriers are spawned; the racer is free to drive anywhere until their car is fully damaged.",
+		UseTimer = false,
 		CarSpawns = {
 
 		},

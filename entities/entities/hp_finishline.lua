@@ -25,16 +25,52 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetMaterial( "phoenix_storms/stripes" )
 	if SERVER then
+		self:PhysicsInit( SOLID_VPHYSICS )
+		local phys = self:GetPhysicsObject()
+		if IsValid( phys ) then
+			phys:Wake()
+			phys:EnableMotion( false )
+		end
 		self:SetUseType( SIMPLE_USE )
 	end
 end
 
+local finishedply = {}
 function ENT:StartTouch( ent )
 	if CLIENT then return end
-	if ent:IsVehicle() and IsValid( ent:GetDriver() ) and GetGlobalBool( "RaceStarted" ) and !ent.Finished then
-		ent.Finished = true
+	if !GetGlobalBool( "RaceStarted" ) then return end
+	local isveh = ent:IsVehicle()
+	local isply = ent:IsPlayer()
+	if isveh or isply then
+		if isveh then
+			local driver = ent:GetDriver()
+			if IsValid( driver ) then
+				driver.Finished = true
+				HPNotifyAll( ent:GetDriver():Nick().." has finished!" )
+				table.insert( finishedply, driver )
+			end
+		elseif isply then
+			ent.Finished = true
+			HPNotifyAll( ent:Nick().." has finished!" )
+			table.insert( finishedply, ent )
+		end
+
+		local allfinished = true
 		for k,v in pairs( player.GetAll() ) do
-			HPNotify( v, ent:GetDriver():Nick().." has finished!" )
+			if v:Team() == TEAM_RACER.ID and !v.Finished then
+				allfinished = false
+				break
+			end
+		end
+		if allfinished then
+			EndRace()
+			local first = finishedply[1]
+			HPNotifyAll( first:Nick().." has won the race!" )
+			timer.Remove( "FinishTimer" )
+			finishedply = {}
+		end
+		if !timer.Exists( "FinishTimer" ) then
+			timer.Create( "FinishTimer", HP_CONFIG_FINISH_TIMER, 1, function() end )
 		end
 	end
 end

@@ -4,6 +4,7 @@ AddCSLuaFile( "shared.lua" )
 
 include( "shared.lua" )
 include( "hp_maps.lua" )
+include( "hp_config.lua" )
 
 RacerTable = {}
 
@@ -75,6 +76,13 @@ function HPNotify( ply, text )
 	net.Send( ply )
 end
 
+util.AddNetworkString( "HPNotifyAll" )
+function HPNotifyAll( text )
+	net.Start( "HPNotifyAll" )
+	net.WriteString( text )
+	net.Broadcast()
+end
+
 util.AddNetworkString( "HPPlaySound" )
 function HPPlaySound( ply, sound )
 	net.Start( "HPPlaySound" )
@@ -104,9 +112,13 @@ function StartRace( type, timelimit )
 			end
 		end
 
-		local countdown = 3
+		if GetGlobalInt( "RaceMode" ) == 1 then
+			v:GodEnable() --Players don't need to take damage if they can't get out of their cars
+		end
+
+		local countdown = HP_CONFIG_PRERACE_TIMER
 		HPNotify( v, "The race will begin soon!" )
-		timer.Create( "RaceCountdown", 1, 4, function()
+		timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
 			if countdown > 0 then
 				HPNotify( v, tostring( countdown ) ) --Will eventually be converted to a HUD element
 				HPPlaySound( v, "buttons/blip1.wav" )
@@ -116,6 +128,10 @@ function StartRace( type, timelimit )
 				HPPlaySound( v, "plats/elevbell1.wav" )
 			end
 		end )
+	end
+
+	if timelimit then
+		timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace() end )
 	end
 	
 	local e = ents.Create( "hp_finishline" )
@@ -141,8 +157,15 @@ function EndRace( finishline )
 		}
 		if v:IsVehicle() then v.Finished = false end
 		if removedents[v:GetClass()] then v:Remove() end
+		if v:IsPlayer() and GetGlobalInt( "RaceMode" ) == 1 then v:GodDisable() end
 	end
+	SetGlobalBool( "RaceStarted", false )
 	RacerTable = {}
+end
+
+function Disqualify( ply, reason )
+	ChangeTeam( ply, 1, true )
+	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
 end
 
 hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
@@ -170,4 +193,37 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		end
 		EndRace()
 	end
+end )
+
+hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify" function( ply, veh )
+	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
+		Disqualify( ply, "Leaving vehicle during race." )
+	end
+end )
+
+hook.Add( "InitPostEntity", "HP_VersionCheck", function()
+	local version
+	local color_blue = Color( 0, 0, 255 )
+	http.Fetch( "https://github.com/LambdaGaming/Hot-Pursuit/master/version.txt",
+		function( body, len, headers, code )
+			if code == 404 then
+				version = "404 Not Found"
+				return
+			end
+			version = tonumber( body )
+		end,
+		function( error )
+			MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Either Github is down or you don't have internet.\n" )
+			return
+		end
+	)
+	if isstring( version ) then
+		MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Either Github is down or OP screwed up again.\n" )
+		return
+	end
+	if HP_VERSION < version then
+		MsgC( color_blue, "\nWarning: Hot Pursuit is out of date! Please update through the workshop or Github.\n" )
+		return
+	end
+	MsgC( color_blue, "\nHot Pursuit version "..version.." successfully loaded.\n" )
 end )

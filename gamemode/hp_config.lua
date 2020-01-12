@@ -1,4 +1,6 @@
 
+HP_CONFIG_PRERACE_TIMER = 3 --How long in seconds before the race starts after the command is sent to start it
+
 HP_CONFIG_RACE_TIMER = 600 --How long the race lasts in seconds, vehicles who haven't crossed the finish line by the time
 
 HP_CONFIG_FINISH_TIMER = 120 --How much time racers have in seconds to reach the finish line after the first racer finishes before the race ends
@@ -14,7 +16,7 @@ HP_CONFIG_BLACKLIST = { --Blacklisted vehicle models that players can't spawn
 HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to spawn
 	["prop_vehicle_jeep"] = true,
 	["prop_vehicle_airboat"] = true,
-	["gmod_sent_vehicle_fphysics_base"] = true --Simfphys support
+	["gmod_sent_vehicle_fphysics_base"] = true --Simfphys support, might need changed since the wheels count as separate entities
 }
 
 HP_CONFIG_RACE_MODES = { --[COMING SOON] Will allow admins to change how the races are run
