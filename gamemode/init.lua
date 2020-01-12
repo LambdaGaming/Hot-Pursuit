@@ -195,7 +195,7 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 	end
 end )
 
-hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify" function( ply, veh )
+hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
 		Disqualify( ply, "Leaving vehicle during race." )
 	end
@@ -204,12 +204,8 @@ end )
 hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 	local version
 	local color_blue = Color( 0, 0, 255 )
-	http.Fetch( "https://github.com/LambdaGaming/Hot-Pursuit/master/version.txt",
+	http.Fetch( "https://raw.githubusercontent.com/LambdaGaming/Hot-Pursuit/master/version.txt",
 		function( body, len, headers, code )
-			if code == 404 then
-				version = "404 Not Found"
-				return
-			end
 			version = tonumber( body )
 		end,
 		function( error )
@@ -217,7 +213,7 @@ hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 			return
 		end
 	)
-	if isstring( version ) then
+	if !isnumber( version ) then
 		MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Either Github is down or OP screwed up again.\n" )
 		return
 	end

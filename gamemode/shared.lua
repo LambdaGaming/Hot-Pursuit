@@ -3,7 +3,7 @@ GM.Name 	= "Hot Pursuit"
 GM.Author 	= "Lambda Gaming"
 GM.Email 	= "N/A"
 GM.Website 	= "N/A"
-HP_VERSION = 0.03
+HP_VERSION = 0.04
 
 DeriveGamemode( "sandbox" )
 
@@ -59,5 +59,3 @@ TEAM_POLICE = {
 		"models/player/swat.mdl"
 	}
 }
-
-MsgC( Color( 0, 0, 255 ), "\nHot Pursuit version "..version.." successfully loaded.\n" )
