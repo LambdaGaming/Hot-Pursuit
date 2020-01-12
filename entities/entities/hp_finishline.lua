@@ -39,6 +39,7 @@ local finishedply = {}
 function ENT:StartTouch( ent )
 	if CLIENT then return end
 	if !GetGlobalBool( "RaceStarted" ) then return end
+	if ent.Finished then return end
 	local isveh = ent:IsVehicle()
 	local isply = ent:IsPlayer()
 	if isveh or isply then
@@ -55,23 +56,21 @@ function ENT:StartTouch( ent )
 			table.insert( finishedply, ent )
 		end
 
-		local allfinished = true
-		for k,v in pairs( player.GetAll() ) do
-			if v:Team() == TEAM_RACER.ID and !v.Finished then
-				allfinished = false
-				break
-			end
-		end
-		if allfinished then
-			EndRace()
-			local first = finishedply[1]
-			HPNotifyAll( first:Nick().." has won the race!" )
-			timer.Remove( "FinishTimer" )
-			finishedply = {}
-		end
 		if !timer.Exists( "FinishTimer" ) then
 			timer.Create( "FinishTimer", HP_CONFIG_FINISH_TIMER, 1, function() end )
 		end
+
+		for k,v in pairs( player.GetAll() ) do
+			if v:Team() == TEAM_RACER.ID and !v.Finished then
+				return
+			end
+		end
+
+		EndRace()
+		local first = finishedply[1]
+		HPNotifyAll( first:Nick().." has won the race!" )
+		timer.Remove( "FinishTimer" )
+		finishedply = {}
 	end
 end
 

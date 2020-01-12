@@ -6,8 +6,6 @@ include( "shared.lua" )
 include( "hp_maps.lua" )
 include( "hp_config.lua" )
 
-RacerTable = {}
-
 function GM:PlayerLoadout( ply )
 	return true
 end
@@ -84,7 +82,13 @@ function HPNotifyAll( text )
 end
 
 util.AddNetworkString( "HPPlaySound" )
-function HPPlaySound( ply, sound )
+function HPPlaySound( ply, sound, broadcast )
+	if broadcast then
+		net.Start( "HPPlaySound" )
+		net.WriteString( sound )
+		net.Broadcast()
+		return
+	end
 	net.Start( "HPPlaySound" )
 	net.WriteString( sound )
 	net.Send( ply )
@@ -92,24 +96,28 @@ end
 
 function StartRace( type, timelimit )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
-	for k,v in RandomPairs( player.GetAll() ) do --Randomize players so everyone's not in the same spot every race
+	for k,v in pairs( player.GetAll() ) do
 		if !v:InVehicle() then
-			v:ChatPrint( "Attempted to start a race but not all players are in their vehicles!" )
+			HPNotifyAll( "Attempted to start a race but not all players are in their vehicles!" )
 			return
 		end
-		if v:GetNWBool( "IsCop" ) then
-			for a,b in pairs( mapconfig.PoliceSpawns ) do
+		
+		if v:Team() == TEAM_POLICE.ID then
+			for a,b in RandomPairs( mapconfig.PoliceSpawns ) do
 				local veh = v:GetVehicle()
 				veh:SetPos( b[1] )
 				veh:SetAngles( b[2] )
+				veh:Fire( "TurnOff" )
+			end
+		elseif v:Team() == TEAM_RACER.ID then
+			for a,b in RandomPairs( mapconfig.CarSpawns ) do
+				local veh = v:GetVehicle()
+				veh:SetPos( b[1] )
+				veh:SetAngles( b[2] )
+				veh:Fire( "TurnOff" )
 			end
 		else
-			for a,b in pairs( mapconfig.CarSpawns ) do
-				local veh = v:GetVehicle()
-				veh:SetPos( b[1] )
-				veh:SetAngles( b[2] )
-				table.insert( RacerTable, v )
-			end
+			HPNotify( v, "You are a spectator of this race since you didn't pick a team." )
 		end
 
 		if GetGlobalInt( "RaceMode" ) == 1 then
@@ -117,18 +125,25 @@ function StartRace( type, timelimit )
 		end
 
 		local countdown = HP_CONFIG_PRERACE_TIMER
-		HPNotify( v, "The race will begin soon!" )
 		timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
 			if countdown > 0 then
-				HPNotify( v, tostring( countdown ) ) --Will eventually be converted to a HUD element
-				HPPlaySound( v, "buttons/blip1.wav" )
+				HPNotifyAll( tostring( countdown ) ) --Will eventually be converted to a HUD element
+				HPPlaySound( v, "buttons/blip1.wav", true )
 				countdown = countdown - 1
 			else
-				HPNotify( v, "GO!" )
-				HPPlaySound( v, "plats/elevbell1.wav" )
+				HPNotifyAll( "GO!" )
+				HPPlaySound( v, "plats/elevbell1.wav", true )
+				for k,v in pairs( player.GetAll() ) do
+					if IsValid( v ) and v:InVehicle() then
+						local veh = v:GetVehicle()
+						veh:Fire( "TurnOn" )
+					end
+				end
 			end
 		end )
 	end
+
+	HPNotifyAll( "The race will begin soon!" )
 
 	if timelimit then
 		timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace() end )
@@ -148,7 +163,7 @@ function StartRace( type, timelimit )
 	SetGlobalBool( "RaceStarted", true )
 end
 
-function EndRace( finishline )
+function EndRace( forced )
 	for k,v in pairs( ents.GetAll() ) do
 		local removedents = {
 			["hp_finishline"] = true,
@@ -157,20 +172,48 @@ function EndRace( finishline )
 		}
 		if v:IsVehicle() then v.Finished = false end
 		if removedents[v:GetClass()] then v:Remove() end
-		if v:IsPlayer() and GetGlobalInt( "RaceMode" ) == 1 then v:GodDisable() end
+		if v:IsPlayer() then
+			v.Finished = false
+			if GetGlobalInt( "RaceMode" ) == 1 then
+				v:GodDisable()
+			end
+		end
 	end
 	SetGlobalBool( "RaceStarted", false )
-	RacerTable = {}
+	if forced then HPNotifyAll( "The race was ended by a superadmin. Nobody wins." ) end
+	timer.Remove( "RaceTimer" )
 end
 
 function Disqualify( ply, reason )
-	ChangeTeam( ply, 1, true )
+	ChangeTeam( ply, TEAM_NONE, true )
 	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
 end
+
+util.AddNetworkString( "ResetVehicle" )
+local function ResetVehicle( len, ply )
+	if IsValid( ply ) and ply:InVehicle() then
+		local reset = ply.VehResetPos
+		local veh = ply:GetVehicle()
+		if reset then
+			veh:SetPos( reset.Pos )
+			veh:SetAngles( reset.Ang )
+			veh:SetRenderFX( kRenderFxStrobeFaster )
+			timer.Simple( 3, function() veh:SetRenderFX( kRenderFxNone ) end )
+			HPNotify( ply, "Successfully reset your vehicle." )
+		else
+			HPNotify( ply, "There is no place for you to reset to." )
+		end
+	end
+end
+net.Receive( "ResetVehicle", ResetVehicle )
 
 hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 	local split = string.Split( text, " " )
 	if split[1] == "!start" then
+		if !ply:IsSuperAdmin() then
+			HPNotify( ply, "Only superadmins can use this command!" )
+			return ""
+		end
 		if GetGlobalBool( "RaceStarted" ) then
 			HPNotify( ply, "A race has already started!" )
 			return ""
@@ -187,17 +230,44 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		return ""
 	end
 	if split[1] == "!end" then
+		if !ply:IsSuperAdmin() then
+			HPNotify( ply, "Only superadmins can use this command!" )
+			return ""
+		end
 		if !GetGlobalBool( "RaceStarted" ) then
 			HPNotify( ply, "There is no race to end!" )
 			return ""
 		end
-		EndRace()
+		EndRace( true )
+		return ""
 	end
 end )
 
 hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
 		Disqualify( ply, "Leaving vehicle during race." )
+	end
+end )
+
+local function SaveVehPosAng( ply )
+	local veh = ply:GetVehicle()
+	local vehpos = veh:GetPos()
+	local vehang = veh:GetAngles()
+	ply.VehResetPos = {}
+	ply.VehResetPos.Pos = vehpos
+	ply.VehResetPos.Ang = vehang
+end
+
+hook.Add( "Think", "HP_CarTracker", function()
+	if !GetGlobalBool( "RaceStarted" ) then return end
+	for k,v in pairs( player.GetAll() ) do
+		if v.TrackerCooldown and v.TrackerCooldown > CurTime() then return end
+		if IsValid( v ) and v:InVehicle() then
+			if v:Team() == TEAM_RACER.ID or v:Team() == TEAM_POLICE.ID then
+				SaveVehPosAng( v )
+				v.TrackerCooldown = CurTime() + 3
+			end
+		end
 	end
 end )
 

@@ -1,12 +1,5 @@
 
 include( "shared.lua" )
-include( "hp_maps.lua" )
-include( "hp_config.lua" )
-
-hook.Add( "SpawnMenuOpen", "HPSpawnMenu", function()
-	local ply = LocalPlayer()
-	return ply:IsSuperAdmin()
-end )
 
 local function HPNotify( ply, text )
 	local textcolor1 = Color( 0, 0, 180, 255 )
@@ -89,5 +82,23 @@ hook.Add( "PlayerButtonDown", "DoorButtons", function( ply, button )
 			return
 		end
 		OpenTeamMenu( ply )
+	end
+end )
+
+hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
+	if IsFirstTimePredicted() and ply:InVehicle() then
+		if key == KEY_BACKSLASH then --Temporary until I make the keys bindable
+			if !GetGlobalBool( "RaceStarted" ) then
+				HPNotify( ply, "You can only reset your vehicle during a race." )
+				return
+			end
+			if ply.ButtonPressCool and ply.ButtonPressCool > CurTime() then
+				HPNotify( ply, "Please wait before resetting your car again." )
+				return
+			end
+			net.Start( "ResetVehicle" )
+			net.SendToServer()
+			ply.ButtonPressCool = CurTime() + 10
+		end
 	end
 end )
