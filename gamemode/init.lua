@@ -123,25 +123,27 @@ function StartRace( type, timelimit )
 		if GetGlobalInt( "RaceMode" ) == 1 then
 			v:GodEnable() --Players don't need to take damage if they can't get out of their cars
 		end
+	end
 
-		local countdown = HP_CONFIG_PRERACE_TIMER
-		timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
-			if countdown > 0 then
-				HPNotifyAll( tostring( countdown ) ) --Will eventually be converted to a HUD element
-				HPPlaySound( v, "buttons/blip1.wav", true )
-				countdown = countdown - 1
-			else
-				HPNotifyAll( "GO!" )
-				HPPlaySound( v, "plats/elevbell1.wav", true )
-				for k,v in pairs( player.GetAll() ) do
-					if IsValid( v ) and v:InVehicle() then
-						local veh = v:GetVehicle()
-						veh:Fire( "TurnOn" )
-					end
+	local countdown = HP_CONFIG_PRERACE_TIMER
+	SetGlobalBool( "RaceCountdown", true )
+	timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
+		if countdown > 0 then
+			HPNotifyAll( tostring( countdown ) ) --Will eventually be converted to a HUD element
+			HPPlaySound( nil, "buttons/blip1.wav", true )
+			countdown = countdown - 1
+		else
+			HPNotifyAll( "GO!" )
+			HPPlaySound( nil, "plats/elevbell1.wav", true )
+			for k,v in pairs( player.GetAll() ) do
+				if IsValid( v ) and v:InVehicle() then
+					local veh = v:GetVehicle()
+					veh:Fire( "TurnOn" )
 				end
 			end
-		end )
-	end
+			SetGlobalBool( "RaceCountdown", false )
+		end
+	end )
 
 	HPNotifyAll( "The race will begin soon!" )
 
