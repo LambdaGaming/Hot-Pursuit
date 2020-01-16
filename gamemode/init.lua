@@ -1,6 +1,7 @@
 
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
+AddCSLuaFile( "hp_config.lua" )
 
 include( "shared.lua" )
 include( "hp_maps.lua" )
@@ -39,14 +40,11 @@ function GM:CanExitVehicle( veh, ply )
 	return true
 end
 
-function ChangeTeam( ply, team, respawn )
+function ChangeTeam( ply, team )
 	ply:StripWeapons()
 	ply:SetTeam( team.ID )
 	ply:SetModel( table.Random( team.Playermodel ) )
 	hook.Run( "PlayerLoadout", ply )
-	if respawn then
-		ply:Spawn()
-	end
 end
 
 util.AddNetworkString( "ChangeTeam" )
@@ -94,6 +92,7 @@ function HPPlaySound( ply, sound, broadcast )
 	net.Send( ply )
 end
 
+util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
 	for k,v in pairs( player.GetAll() ) do
@@ -163,6 +162,9 @@ function StartRace( type, timelimit )
 		e:Spawn()
 	end
 	SetGlobalBool( "RaceStarted", true )
+	net.Start( "HPPlayMusic" )
+	net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
+	net.Broadcast()
 end
 
 function EndRace( forced )
@@ -179,6 +181,7 @@ function EndRace( forced )
 			if GetGlobalInt( "RaceMode" ) == 1 then
 				v:GodDisable()
 			end
+			v:ConCommand( "stopsound" )
 		end
 	end
 	SetGlobalBool( "RaceStarted", false )
@@ -187,7 +190,7 @@ function EndRace( forced )
 end
 
 function Disqualify( ply, reason )
-	ChangeTeam( ply, TEAM_NONE, true )
+	ChangeTeam( ply, TEAM_NONE )
 	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
 end
 

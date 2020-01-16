@@ -1,5 +1,6 @@
 
 include( "shared.lua" )
+include( "hp_config.lua" )
 
 local function HPNotify( ply, text )
 	local textcolor1 = Color( 0, 0, 180, 255 )
@@ -24,6 +25,13 @@ end )
 net.Receive( "HPPlaySound", function( len, ply )
 	local sound = net.ReadString()
 	surface.PlaySound( sound )
+end )
+
+net.Receive( "HPPlayMusic", function( len, ply )
+	local randtrack = net.ReadString()
+	sound.PlayFile( "sound/"..randtrack, "", function( station )
+		station:SetVolume( HP_CONFIG_MUSIC_VOLUME )
+	end )
 end )
 
 local function OpenTeamMenu( ply )
