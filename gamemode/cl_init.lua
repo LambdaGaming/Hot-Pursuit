@@ -81,7 +81,7 @@ local function OpenTeamMenu( ply )
 	ply.MenuOpen = true
 end
 
-hook.Add( "PlayerButtonDown", "DoorButtons", function( ply, button )
+hook.Add( "PlayerButtonDown", "HP_ChangeTeam", function( ply, button )
 	local f4 = KEY_F4
 	if !IsFirstTimePredicted() or ply.MenuOpen then return end
 	if button == f4 then
