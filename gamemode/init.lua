@@ -25,7 +25,7 @@ function GM:PlayerSpawnSENT( ply, class )
 	return false
 end
 
-function GM:PlayerSpawnSWEP()
+function GM:PlayerSpawnSWEP( ply, class )
 	if ply:IsSuperAdmin() then return true end
 	return false
 end
