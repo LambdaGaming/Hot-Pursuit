@@ -45,12 +45,12 @@ function ENT:StartTouch( ent )
 	if isveh or isply then
 		if isveh then
 			local driver = ent:GetDriver()
-			if IsValid( driver ) then
+			if IsValid( driver ) and driver:Team() == TEAM_RACER.ID then
 				driver.Finished = true
 				HPNotifyAll( ent:GetDriver():Nick().." has finished!" )
 				table.insert( finishedply, driver )
 			end
-		elseif isply then
+		elseif isply and ent:Team() == TEAM_RACER.ID then
 			ent.Finished = true
 			HPNotifyAll( ent:Nick().." has finished!" )
 			table.insert( finishedply, ent )
