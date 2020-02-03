@@ -110,3 +110,9 @@ hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
 		end
 	end
 end )
+
+hook.Add( "PreDrawHalos", "HP_StartLineHalo", function()
+	if GetGlobalBool( "PreRace" ) then
+		halo.Add( ents.FindByClass( "hp_startline" ), Color( 0, 255, 0 ), 1, 1, 3, true, true )
+	end
+end )

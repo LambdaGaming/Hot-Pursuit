@@ -7,6 +7,8 @@ include( "shared.lua" )
 include( "hp_maps.lua" )
 include( "hp_config.lua" )
 
+RacerTable = {}
+
 function GM:PlayerLoadout( ply )
 	return true
 end
@@ -92,6 +94,17 @@ function HPPlaySound( ply, sound, broadcast )
 	net.Send( ply )
 end
 
+function PreRace( type )
+	SetGlobalBool( "PreRace", true )
+	local mapconfig = HotPursuitMaps[game.GetMap()][type]
+	local e = ents.Create( "hp_startline" )
+	e:SetPos( mapconfig.StartPos.Pos )
+	e:SetAngles( mapconfig.StartPos.Ang )
+	e:Spawn()
+	HPNotifyAll( "The pre-race has started. Racers, get to the starting line, which is outlined in green, and wait for the race to begin." )
+	HPNotifyAll( "Cops, hide along the track and wait for racers to pass you." )
+end
+
 util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
@@ -101,22 +114,24 @@ function StartRace( type, timelimit )
 			return
 		end
 		
+		local veh = v:GetVehicle()
 		if v:Team() == TEAM_POLICE.ID then
-			for a,b in RandomPairs( mapconfig.PoliceSpawns ) do
-				local veh = v:GetVehicle()
+			veh:Fire( "TurnOff" )
+			--[[ for a,b in RandomPairs( mapconfig.PoliceSpawns ) do
 				veh:SetPos( b[1] )
 				veh:SetAngles( b[2] )
-				veh:Fire( "TurnOff" )
-			end
-		elseif v:Team() == TEAM_RACER.ID then
-			for a,b in RandomPairs( mapconfig.CarSpawns ) do
-				local veh = v:GetVehicle()
+			end ]]
+		end
+		if v:Team() == TEAM_RACER.ID then
+			veh:Fire( "TurnOff" )
+			--[[ for a,b in RandomPairs( mapconfig.CarSpawns ) do
 				veh:SetPos( b[1] )
 				veh:SetAngles( b[2] )
-				veh:Fire( "TurnOff" )
-			end
-		else
+			end ]]
+		end
+		if v:Team() == TEAM_NONE.ID then
 			HPNotify( v, "You are a spectator of this race since you didn't pick a team." )
+			if IsValid( veh ) then veh:Remove() end
 		end
 
 		if GetGlobalInt( "RaceMode" ) == 1 then
@@ -150,6 +165,13 @@ function StartRace( type, timelimit )
 		timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace() end )
 	end
 	
+	if !GetGlobalBool( "PreRace" ) then
+		local e = ents.Create( "hp_startline" )
+		e:SetPos( mapconfig.StartPos.Pos )
+		e:SetAngles( mapconfig.StartPos.Ang )
+		e:Spawn()
+	end
+
 	local e = ents.Create( "hp_finishline" )
 	e:SetPos( mapconfig.FinishPos.Pos )
 	e:SetAngles( mapconfig.FinishPos.Ang )
@@ -161,6 +183,16 @@ function StartRace( type, timelimit )
 		e:SetAngles( v[2] )
 		e:Spawn()
 	end
+
+	timer.Create( "DisqualifyTimer", 15, 1, function()
+		for k,v in pairs( player.GetAll() ) do
+			if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
+				Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
+			end
+		end
+	end )
+	
+	SetGlobalBool( "PreRace", false )
 	SetGlobalBool( "RaceStarted", true )
 	net.Start( "HPPlayMusic" )
 	net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
@@ -171,6 +203,7 @@ function EndRace( forced )
 	for k,v in pairs( ents.GetAll() ) do
 		local removedents = {
 			["hp_finishline"] = true,
+			["hp_startline"] = true,
 			["automod_spikestrip"] = true,
 			["hp_barrier"] = true
 		}
@@ -178,20 +211,25 @@ function EndRace( forced )
 		if removedents[v:GetClass()] then v:Remove() end
 		if v:IsPlayer() then
 			v.Finished = false
-			if GetGlobalInt( "RaceMode" ) == 1 then
-				v:GodDisable()
-			end
+			v:GodDisable()
 			v:ConCommand( "stopsound" )
 		end
 	end
+	SetGlobalBool( "PreRace", false )
 	SetGlobalBool( "RaceStarted", false )
 	if forced then HPNotifyAll( "The race was ended by a superadmin. Nobody wins." ) end
 	timer.Remove( "RaceTimer" )
+	timer.Remove( "DisqualifyTimer" )
 end
 
 function Disqualify( ply, reason )
 	ChangeTeam( ply, TEAM_NONE )
 	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
+	table.RemoveByValue( RacerTable, ply )
+	if #RacerTable == 0 then
+		EndRace()
+		HPNotifyAll( "The last player in the race has been disqualified. Nobody wins." )
+	end
 end
 
 util.AddNetworkString( "ResetVehicle" )
@@ -224,7 +262,7 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			return ""
 		end
 		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
-			HPNotify( ply, "The track type you selected doesn't exist." )
+			HPNotify( ply, "The track layout you selected doesn't exist." )
 			return ""
 		end
 		if tobool( split[3] ) then
@@ -246,10 +284,26 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		EndRace( true )
 		return ""
 	end
+	if split[1] == "!prestart" then
+		if !ply:IsSuperAdmin() then
+			HPNotify( ply, "Only superadmins can use this command!" )
+			return ""
+		end
+		if GetGlobalBool( "RaceStarted" ) then
+			HPNotify( ply, "A race has already started!" )
+			return ""
+		end
+		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
+			HPNotify( ply, "The track layout you selected doesn't exist." )
+			return ""
+		end
+		PreRace( tonumber( split[2] ) )
+		return ""
+	end
 end )
 
 hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
-	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
+	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 and ply:Team() != TEAM_NONE.ID then
 		Disqualify( ply, "Leaving vehicle during race." )
 	end
 end )

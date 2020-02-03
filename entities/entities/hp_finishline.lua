@@ -5,7 +5,7 @@ ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Finish Line"
 ENT.Author = "Lambda Gaming"
-ENT.Spawnable = true
+ENT.Spawnable = false
 ENT.AdminOnly = true
 ENT.Category = "Hot Pursuit"
 
@@ -23,7 +23,8 @@ function ENT:Initialize()
     self:SetModel( "models/hunter/plates/plate3x8.mdl" )
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
-	self:SetMaterial( "phoenix_storms/stripes" )
+	self:SetMaterial( "hotpursuit/finishline" )
+	self:SetColor( Color( 0, 255, 0 ) )
 	if SERVER then
 		self:PhysicsInit( SOLID_VPHYSICS )
 		local phys = self:GetPhysicsObject()
@@ -35,7 +36,7 @@ function ENT:Initialize()
 	end
 end
 
-local finishedply = {}
+local FinishedPly = {}
 function ENT:StartTouch( ent )
 	if CLIENT then return end
 	if !GetGlobalBool( "RaceStarted" ) then return end
@@ -48,12 +49,14 @@ function ENT:StartTouch( ent )
 			if IsValid( driver ) and driver:Team() == TEAM_RACER.ID then
 				driver.Finished = true
 				HPNotifyAll( ent:GetDriver():Nick().." has finished!" )
-				table.insert( finishedply, driver )
+				table.insert( FinishedPly, driver )
+				table.RemoveByValue( RacerTable, driver )
 			end
 		elseif isply and ent:Team() == TEAM_RACER.ID then
 			ent.Finished = true
 			HPNotifyAll( ent:Nick().." has finished!" )
-			table.insert( finishedply, ent )
+			table.insert( FinishedPly, ent )
+			table.RemoveByValue( RacerTable, ent )
 		end
 
 		if !timer.Exists( "FinishTimer" ) then
@@ -67,10 +70,12 @@ function ENT:StartTouch( ent )
 		end
 
 		EndRace()
-		local first = finishedply[1]
+
+		local first = FinishedPly[1]
+		if !first then return end
 		HPNotifyAll( first:Nick().." has won the race!" )
 		timer.Remove( "FinishTimer" )
-		finishedply = {}
+		FinishedPly = {}
 	end
 end
 

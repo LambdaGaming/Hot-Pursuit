@@ -3,11 +3,12 @@ GM.Name 	= "Hot Pursuit"
 GM.Author 	= "Lambda Gaming"
 GM.Email 	= "N/A"
 GM.Website 	= "N/A"
-HP_VERSION = 0.04
+HP_VERSION = 0.08
 
 DeriveGamemode( "sandbox" )
 
 SetGlobalBool( "RaceStarted", false )
+SetGlobalBool( "PreRace", false )
 SetGlobalInt( "RaceMode", 1 ) --Temporary until this feature is fully implemented
 
 TEAM_NONE = {

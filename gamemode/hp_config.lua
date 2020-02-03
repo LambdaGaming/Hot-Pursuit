@@ -28,6 +28,19 @@ HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to 
 	["gmod_sent_vehicle_fphysics_base"] = true --Simfphys support, might need changed since the wheels count as separate entities
 }
 
+--Advanced config, don't touch anything here unless you know what you're doing.
+--Changing values here won't do anything unless you change the core code to reflect your changes here.
+HP_CONFIG_TRACK_TYPES = { --[COMING SOON] Will allow admins to change whether racers are confined to a track or not
+	[1] = {
+		Name = "Standard",
+		Description = "Barriers are spawned, racers are confined to a path."
+	},
+	[2] = {
+		Name = "Free Roam",
+		Description = "Barriers and finish line don't spawn, racers are free to drive anywhere on the map. Time limit is always enabled for this type."
+	}
+}
+
 HP_CONFIG_RACE_MODES = { --[COMING SOON] Will allow admins to change how the races are run
 	[1] = {
 		Name = "Normal",
