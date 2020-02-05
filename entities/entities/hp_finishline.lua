@@ -40,19 +40,20 @@ local FinishedPly = {}
 function ENT:StartTouch( ent )
 	if CLIENT then return end
 	if !GetGlobalBool( "RaceStarted" ) then return end
-	if ent.Finished then return end
 	local isveh = ent:IsVehicle()
 	local isply = ent:IsPlayer()
 	if isveh or isply then
 		if isveh then
 			local driver = ent:GetDriver()
-			if IsValid( driver ) and driver:Team() == TEAM_RACER.ID then
+			if IsValid( driver ) then
+				if driver:Team() != TEAM_RACER.ID or driver.Finished then return end
 				driver.Finished = true
 				HPNotifyAll( ent:GetDriver():Nick().." has finished!" )
 				table.insert( FinishedPly, driver )
 				table.RemoveByValue( RacerTable, driver )
 			end
-		elseif isply and ent:Team() == TEAM_RACER.ID then
+		elseif isply then
+			if ent:Team() != TEAM_RACER.ID or ent.Finished then return end
 			ent.Finished = true
 			HPNotifyAll( ent:Nick().." has finished!" )
 			table.insert( FinishedPly, ent )

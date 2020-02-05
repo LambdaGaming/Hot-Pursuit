@@ -308,6 +308,18 @@ hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	end
 end )
 
+hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam )
+	if GetGlobalBool( "RaceStarted" ) then
+		local driver = veh:GetDriver()
+		if IsValid( driver ) and driver:Team() != TEAM_NONE.ID then
+			local health = veh:GetNWInt( "AM_VehicleHealth" )
+			if health <= 0 then
+				Disqualify( driver, "Vehicle was destroyed." )
+			end
+		end
+	end
+end )
+
 local function SaveVehPosAng( ply )
 	local veh = ply:GetVehicle()
 	local vehpos = veh:GetPos()
