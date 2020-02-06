@@ -33,7 +33,18 @@ function GM:PlayerSpawnSWEP( ply, class )
 end
 
 function GM:PlayerSpawnVehicle( ply, model )
-	if HP_CONFIG_BLACKLIST and HP_CONFIG_BLACKLIST[model] then return false end
+	if GetGlobalBool( "RaceStarted" ) then
+		HPNotify( "You cannot spawn vehicles during a race." )
+		return false
+	end
+	if HP_CONFIG_BLACKLIST and HP_CONFIG_BLACKLIST[model] then
+		HPNotify( ply, "This vehicle is blacklisted." )
+		return false
+	end
+	if ply:Team() == TEAM_NONE.ID then
+		HPNotify( ply, "Pick a team by pressing F4 before spawning a vehicle." )
+		return false
+	end
 	return true
 end
 
@@ -308,7 +319,7 @@ hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	end
 end )
 
-hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam )
+hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam ) --Automod damage support
 	if GetGlobalBool( "RaceStarted" ) then
 		local driver = veh:GetDriver()
 		if IsValid( driver ) and driver:Team() != TEAM_NONE.ID then
@@ -316,6 +327,15 @@ hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam )
 			if health <= 0 then
 				Disqualify( driver, "Vehicle was destroyed." )
 			end
+		end
+	end
+end )
+
+hook.Add( "VC_engineExploded", "HP_VCModDamage", function( veh ) --VCMod damage support
+	if GetGlobalBool( "RaceStarted" ) then
+		local driver = veh:GetDriver()
+		if IsValid( driver ) and driver:Team() != TEAM_NONE.ID then
+			Disqualify( driver, "Vehicle was destroyed." )
 		end
 	end
 end )
