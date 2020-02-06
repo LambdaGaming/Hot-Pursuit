@@ -36,7 +36,6 @@ function ENT:Initialize()
 	end
 end
 
-local FinishedPly = {}
 function ENT:StartTouch( ent )
 	if CLIENT then return end
 	if !GetGlobalBool( "RaceStarted" ) then return end
@@ -76,7 +75,6 @@ function ENT:StartTouch( ent )
 		if !first then return end
 		HPNotifyAll( first:Nick().." has won the race!" )
 		timer.Remove( "FinishTimer" )
-		FinishedPly = {}
 	end
 end
 

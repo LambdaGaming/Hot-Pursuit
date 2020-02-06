@@ -8,6 +8,7 @@ include( "hp_maps.lua" )
 include( "hp_config.lua" )
 
 RacerTable = {}
+FinishedPly = {}
 
 function GM:PlayerLoadout( ply )
 	return true
@@ -62,7 +63,7 @@ end
 
 util.AddNetworkString( "ChangeTeam" )
 net.Receive( "ChangeTeam", function( len, ply )
-	local id = tonumber( net.ReadString() )
+	local id = net.ReadInt( 32 )
 	local team
 	if id == 1 then
 		team = TEAM_NONE
@@ -167,14 +168,23 @@ function StartRace( type, timelimit )
 				end
 			end
 			SetGlobalBool( "RaceCountdown", false )
+			if timelimit or GetGlobalBool( "TrackType" ) == 2 then
+				timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace( false, true ) end )
+			end
+			timer.Create( "DisqualifyTimer", 15, 1, function()
+				for k,v in pairs( player.GetAll() ) do
+					if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
+						Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
+					end
+				end
+			end )
+			SetGlobalBool( "PreRace", false )
+			SetGlobalBool( "RaceStarted", true )
+			SyncTimer( nil, true )
 		end
 	end )
 
 	HPNotifyAll( "The race will begin soon!" )
-
-	if timelimit then
-		timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace() end )
-	end
 	
 	if !GetGlobalBool( "PreRace" ) then
 		local e = ents.Create( "hp_startline" )
@@ -183,34 +193,66 @@ function StartRace( type, timelimit )
 		e:Spawn()
 	end
 
-	local e = ents.Create( "hp_finishline" )
-	e:SetPos( mapconfig.FinishPos.Pos )
-	e:SetAngles( mapconfig.FinishPos.Ang )
-	e:Spawn()
-
-	for k,v in ipairs( mapconfig.BlockSpawns ) do
-		local e = ents.Create( "hp_barrier" )
-		e:SetPos( v[1] )
-		e:SetAngles( v[2] )
+	if GetGlobalInt( "TrackType" ) == 1 then
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.FinishPos.Pos )
+		e:SetAngles( mapconfig.FinishPos.Ang )
 		e:Spawn()
-	end
 
-	timer.Create( "DisqualifyTimer", 15, 1, function()
-		for k,v in pairs( player.GetAll() ) do
-			if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
-				Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
-			end
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
+			e:Spawn()
 		end
-	end )
-	
-	SetGlobalBool( "PreRace", false )
-	SetGlobalBool( "RaceStarted", true )
+	end
 	net.Start( "HPPlayMusic" )
 	net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
 	net.Broadcast()
 end
 
-function EndRace( forced )
+function SyncTimer( ply, all )
+	net.Start( "HP_SyncTimer" )
+	if timer.Exists( "RaceTimer" ) then
+		net.WriteInt( timer.TimeLeft( "RaceTimer" ), 32 )
+	else
+		net.WriteInt( 0, 32 )
+	end
+	if all then
+		net.Broadcast()
+	else
+		net.Send( ply )
+	end
+end
+
+util.AddNetworkString( "HP_SyncTimer" )
+hook.Add( "PlayerInitialSpawn", "HP_SyncTimer", function( ply )
+	SyncTimer( ply )
+end )
+
+util.AddNetworkString( "HP_RemoveClientTimer" )
+function RemoveClientTimer()
+	net.Start( "HP_RemoveClientTimer" )
+	net.Broadcast()
+end
+
+local function GetWinners( normal )
+	local winners = ""
+	if normal then
+		if !FinishedPly[1] then return "None" end
+		return FinishedPly[1]:Nick()
+	end
+	for k,v in pairs( RacerTable ) do
+		if k >= 2 then
+			winners = winners..", "..v:Nick()
+		else
+			winners = winners..v:Nick()
+		end
+	end
+	return winners
+end
+
+function EndRace( forced, timed )
 	for k,v in pairs( ents.GetAll() ) do
 		local removedents = {
 			["hp_finishline"] = true,
@@ -228,9 +270,22 @@ function EndRace( forced )
 	end
 	SetGlobalBool( "PreRace", false )
 	SetGlobalBool( "RaceStarted", false )
-	if forced then HPNotifyAll( "The race was ended by a superadmin. Nobody wins." ) end
+
+	if forced then
+		HPNotifyAll( "The race was ended by a superadmin. Nobody wins." )
+	end
+	if timed then
+		if GetGlobalInt( "TrackType" ) == 2 then
+			HPNotifyAll( "Time's up! Winners of the free-roam race: "..GetWinners() )
+		else
+			HPNotifyAll( "Time's up! Winner of the race: "..GetWinners( true ) )
+		end
+	end
+	
 	timer.Remove( "RaceTimer" )
 	timer.Remove( "DisqualifyTimer" )
+	RemoveClientTimer()
+	FinishedPly = {}
 end
 
 function Disqualify( ply, reason )
@@ -309,6 +364,21 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			return ""
 		end
 		PreRace( tonumber( split[2] ) )
+		return ""
+	end
+	if split[1] == "!tracktype" then
+		if !ply:IsSuperAdmin() then
+			HPNotify( ply, "Only superadmins can use this command!" )
+			return ""
+		end
+		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
+			HPNotify( ply, "The track type you selected doesn't exist." )
+			return ""
+		end
+		SetGlobalBool( "TrackType", tonumber( split[2] ) )
+
+		local tracktype = HP_CONFIG_TRACK_TYPES[tonumber(split[2])]
+		HPNotifyAll( "The track type has been changed to "..tracktype.Name..". "..tracktype.Description )
 		return ""
 	end
 end )

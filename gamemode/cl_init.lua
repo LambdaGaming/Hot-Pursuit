@@ -2,6 +2,10 @@
 include( "shared.lua" )
 include( "hp_config.lua" )
 
+local MenuColor = Color( 49, 53, 61, 200 )
+local ButtonColor = Color( 230, 93, 80, 255 )
+local RaceTimer = 0
+
 local function HPNotify( ply, text )
 	local textcolor1 = Color( 0, 0, 180, 255 )
 	local textcolor2 = color_white
@@ -37,49 +41,105 @@ end )
 local function OpenTeamMenu( ply )
 	local menu = vgui.Create( "DFrame" )
 	menu:SetTitle( "Select Team" )
-	menu:SetSize( 180, 120 )
+	menu:SetSize( 180, 160 )
 	menu:Center()
 	menu:MakePopup()
 	menu.Paint = function( self, w, h )
-		draw.RoundedBox( 0, 0, 0, w, h, DOOR_CONFIG_MENU_COLOR )
+		draw.RoundedBox( 0, 0, 0, w, h, MenuColor )
 	end
 	menu.OnClose = function()
 		ply.MenuOpen = false
 	end
-	local restrictbutton = vgui.Create( "DButton", menu )
-	restrictbutton:SetText( "Team Racer" )
-	restrictbutton:SetTextColor( DOOR_CONFIG_BUTTON_TEXT_COLOR )
-	restrictbutton:SetPos( 30, 30 )
-	restrictbutton:SetSize( 150, 30 )
-	restrictbutton:CenterHorizontal()
-	restrictbutton.Paint = function( self, w, h )
-		draw.RoundedBox( 0, 0, 0, w, h, DOOR_CONFIG_BUTTON_COLOR )
+	local racerbutton = vgui.Create( "DButton", menu )
+	if ply:Team() == TEAM_RACER.ID then
+		racerbutton:SetText( "Team Racer (Current)" )
+	else
+		racerbutton:SetText( "Team Racer" )
 	end
-	restrictbutton.DoClick = function()
+	racerbutton:SetTextColor( color_white )
+	racerbutton:SetPos( 30, 30 )
+	racerbutton:SetSize( 150, 30 )
+	racerbutton:CenterHorizontal()
+	racerbutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	racerbutton.DoClick = function()
 		net.Start( "ChangeTeam" )
-		net.WriteString( tostring( TEAM_RACER.ID ) )
+		net.WriteInt( TEAM_RACER.ID, 32 )
 		net.SendToServer()
 		menu:Close()
 		HPNotify( ply, "You have changed your team to Racer." )
 	end
-	local restrictremove = vgui.Create( "DButton", menu )
-	restrictremove:SetText( "Team Police" )
-	restrictremove:SetTextColor( DOOR_CONFIG_BUTTON_TEXT_COLOR )
-	restrictremove:SetPos( 30, 70 )
-	restrictremove:SetSize( 150, 30 )
-	restrictremove:CenterHorizontal()
-	restrictremove.Paint = function( self, w, h )
-		draw.RoundedBox( 0, 0, 0, w, h, DOOR_CONFIG_BUTTON_COLOR )
+
+	local policebutton = vgui.Create( "DButton", menu )
+	if ply:Team() == TEAM_POLICE.ID then
+		policebutton:SetText( "Team Police (Current)" )
+	else
+		policebutton:SetText( "Team Police" )
 	end
-	restrictremove.DoClick = function()
+	policebutton:SetTextColor( color_white )
+	policebutton:SetPos( 30, 70 )
+	policebutton:SetSize( 150, 30 )
+	policebutton:CenterHorizontal()
+	policebutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	policebutton.DoClick = function()
 		net.Start( "ChangeTeam" )
-		net.WriteString( tostring( TEAM_POLICE.ID ) )
+		net.WriteInt( TEAM_POLICE.ID, 32 )
 		net.SendToServer()
 		menu:Close()
 		HPNotify( ply, "You have changed your team to Police." )
 	end
+
+	local specbutton = vgui.Create( "DButton", menu )
+	if ply:Team() == TEAM_NONE.ID then
+		specbutton:SetText( "Team Spectator (Current)" )
+	else
+		specbutton:SetText( "Team Spectator" )
+	end
+	specbutton:SetTextColor( color_white )
+	specbutton:SetPos( 30, 110 )
+	specbutton:SetSize( 150, 30 )
+	specbutton:CenterHorizontal()
+	specbutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	specbutton.DoClick = function()
+		net.Start( "ChangeTeam" )
+		net.WriteInt( TEAM_NONE.ID, 32 )
+		net.SendToServer()
+		menu:Close()
+		HPNotify( ply, "You have changed your team to Spectator." )
+	end
 	ply.MenuOpen = true
 end
+
+net.Receive( "HP_SyncTimer", function( len, ply )
+	local getracetimer = net.ReadInt( 32 )
+	RaceTimer = getracetimer + CurTime()
+end )
+
+net.Receive( "HP_RemoveClientTimer", function()
+	RaceTimer = 0
+end )
+
+surface.CreateFont( "HPTimer", {
+	font = "Arial",
+	size = 16,
+	weight = 600
+} )
+
+hook.Add( "HUDPaint", "CascadeTimerHUD", function()
+	if GetGlobalBool( "RaceStarted" ) then
+		draw.RoundedBoxEx( 14, ScrH() / 2 + 350, 0, 200, 40, MenuColor, false, false, true, true )
+		if RaceTimer - CurTime() <= 0 then
+			draw.DrawText( "Race Timer: Disabled", "HPTimer", ScrW() / 2 - 45, 10, color_white, TEXT_ALIGN_LEFT )
+		else
+			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", ScrW() / 2 - 45, 10, color_white, TEXT_ALIGN_LEFT )
+		end
+	end
+end )
 
 hook.Add( "PlayerButtonDown", "HP_ChangeTeam", function( ply, button )
 	local f4 = KEY_F4
