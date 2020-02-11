@@ -4,8 +4,7 @@ HotPursuitMaps = {}
 HotPursuitMaps["rp_rockford_v2b"] = {
 	[1] = { --Layout of the track
 		Name = "Standard",
-		Description = "Standard track layout around Rockford. Supports up to 16 players.",
-		UseTimer = false,
+		Description = "Standard track layout around Rockford.",
 		--[[ CarSpawns = { --Positions of the cars at the start of the race
 			{ Vector( -6115, -6936, 0 ), Angle( 0, 90, 0 ) },
 			{ Vector( -6115, -6699, 0 ), Angle( 0, 90, 0 ) },
@@ -41,7 +40,6 @@ HotPursuitMaps["rp_rockford_v2b"] = {
 	[2] = {
 		Name = "Reversed",
 		Description = "Same as standard but the places of the starting line and finish line are swapped.",
-		UseTimer = false,
 		--[[ CarSpawns = {
 
 		},
@@ -56,7 +54,20 @@ HotPursuitMaps["rp_rockford_v2b"] = {
 			Ang = Angle( 0, -90, 0 )
 		},
 		FinishPos = {
-
+			Pos = Vector( -6240, -6815, 0 ),
+			Ang = Angle( 0, 180, 0 )
 		}
 	}
 }
+
+--[[ HotPursuitMaps["fightspace3b"] = { --Example of a free roam only map
+	[1] = {
+		Name = "Standard Free Roam",
+		Description = "Standard track, free roam only.",
+		FreeRoamOnly = true, --Whether the map only supports the free roam track type or not (this will usually be applied to open maps where a reasonable amount of barriers wouldn't be enough to prevent track cutting)
+		StartPos = {
+			Pos = Vector( 0, 0, 0 ),
+			Ang = Angle( 0, 0, 0 )
+		}
+	}
+} ]]

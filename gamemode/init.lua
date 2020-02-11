@@ -168,7 +168,7 @@ function StartRace( type, timelimit )
 				end
 			end
 			SetGlobalBool( "RaceCountdown", false )
-			if timelimit or GetGlobalBool( "TrackType" ) == 2 then
+			if timelimit or GetGlobalBool( "TrackType" ) == 2 or mapconfig.FreeRoamOnly then
 				timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace( false, true ) end )
 			end
 			timer.Create( "DisqualifyTimer", 15, 1, function()
