@@ -2,6 +2,7 @@
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "hp_config.lua" )
+AddCSLuaFile( "hp_maps.lua" )
 
 include( "shared.lua" )
 include( "hp_maps.lua" )
@@ -155,7 +156,7 @@ function StartRace( type, timelimit )
 	SetGlobalBool( "RaceCountdown", true )
 	timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
 		if countdown > 0 then
-			HPNotifyAll( tostring( countdown ) ) --Will eventually be converted to a HUD element
+			HPNotifyAll( tostring( countdown ) )
 			HPPlaySound( nil, "buttons/blip1.wav", true )
 			countdown = countdown - 1
 		else

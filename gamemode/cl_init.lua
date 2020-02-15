@@ -1,6 +1,7 @@
 
 include( "shared.lua" )
 include( "hp_config.lua" )
+include( "hp_maps.lua" )
 
 local MenuColor = Color( 49, 53, 61, 200 )
 local ButtonColor = Color( 230, 93, 80, 255 )
@@ -130,14 +131,34 @@ surface.CreateFont( "HPTimer", {
 	weight = 600
 } )
 
-hook.Add( "HUDPaint", "CascadeTimerHUD", function()
+local function GetTeamName( ply )
+	local team = ply:Team()
+	if team == TEAM_RACER.ID then
+		return "Racer"
+	end
+	if team == TEAM_POLICE.ID then
+		return "Police"
+	end
+	return "Spectator"
+end
+
+hook.Add( "HUDPaint", "HP_MainHUD", function()
 	if GetGlobalBool( "RaceStarted" ) then
-		draw.RoundedBoxEx( 14, ScrH() / 2 + 350, 0, 200, 40, MenuColor, false, false, true, true )
+		local RaceMode = HP_CONFIG_RACE_MODES[GetGlobalInt( "RaceMode" )].Name
+		local TrackType = HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name
+		local TrackLayout = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
+		local ply = LocalPlayer()
+
+		draw.RoundedBoxEx( 14, 0, 0, ScrW(), 40, MenuColor, false, false, true, true )
+		draw.DrawText( "Race Mode: "..RaceMode, "HPTimer", ScrW() / 2 - 800, 10 )
+		draw.DrawText( "Track Type: "..TrackType, "HPTimer", ScrW() / 2 - 400, 10 )
 		if RaceTimer - CurTime() <= 0 then
-			draw.DrawText( "Race Timer: Disabled", "HPTimer", ScrW() / 2 - 45, 10, color_white, TEXT_ALIGN_LEFT )
+			draw.DrawText( "Race Timer: Disabled", "HPTimer", ScrW() / 2 - 45, 10 )
 		else
-			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", ScrW() / 2 - 45, 10, color_white, TEXT_ALIGN_LEFT )
+			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", ScrW() / 2 - 45, 10 )
 		end
+		draw.DrawText( "Your Team: "..GetTeamName( ply ), "HPTimer", ScrW() / 2 + 300, 10 )
+		draw.DrawText( "Track Layout: "..TrackLayout, "HPTimer", ScrW() / 2 + 600, 10 )
 	end
 end )
 
