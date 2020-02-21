@@ -197,3 +197,26 @@ hook.Add( "PreDrawHalos", "HP_StartLineHalo", function()
 		halo.Add( ents.FindByClass( "hp_startline" ), Color( 0, 255, 0 ), 1, 1, 3, true, true )
 	end
 end )
+
+local mat = Material( "icon16/bullet_error.png" )
+local function BeaconImage()
+	local pl = LocalPlayer()
+	local shootPos = pl:GetShootPos()
+	local ply = player.GetAll()
+	local plypos = vector_origin
+	local hisPos = pl:GetShootPos()
+	if pl:Team() == TEAM_POLICE.ID then
+		local pos = hisPos - shootPos
+		local unitPos = pos:GetNormalized()
+		local trace = util.QuickTrace( shootPos, pos, pl )
+		local beacon = ents.FindByClass( "hp_beacon" )[1]
+		if !IsValid( beacon ) then return end
+		plypos = beacon:GetPos()
+		plypos.z = plypos.z + 15
+		plypos = plypos:ToScreen()
+		surface.SetMaterial( mat )
+		surface.SetDrawColor( color_white )
+		surface.DrawTexturedRect( plypos.x - 16, plypos.y - 74, 40, 40 )
+	end
+end
+hook.Add( "HUDPaint","drawRankIconsHUD", BeaconImage )

@@ -189,10 +189,10 @@ function StartRace( type, timelimit )
 							v:Give( "weapon_spikestrip" )
 						end
 						if modetable.UseBeacons then
-							v:Give( "hp_beacon" )
+							v:Give( "weapon_hp_beacon" )
 						end
 						if modetable.UseMines then
-							v:Give( "hp_mine" )
+							v:Give( "weapon_hp_mine" )
 						end
 					end
 				end
@@ -431,6 +431,12 @@ end )
 hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 and ply:Team() != TEAM_NONE.ID then
 		Disqualify( ply, "Leaving vehicle during race." )
+	end
+end )
+
+hook.Add( "PlayerDeath", "HP_DeathDisqualify", function( victim, inflictor, attacker )
+	if victim:Team() == TEAM_RACER.ID and ( GetGlobalBool( "RaceStarted" ) or GetGlobalBool( "RaceCountdown" ) ) then
+		Disqualify( victim, "Died in the race." )
 	end
 end )
 

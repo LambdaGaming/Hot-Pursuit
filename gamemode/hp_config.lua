@@ -37,6 +37,12 @@ HP_CONFIG_RIFLES = { --Rifles to randomly pick from on the nightmare mode
 	["weapon_ar2"] = true
 }
 
+HP_CONFIG_BEACON_TIME = 30 --Time in seconds that each beacon lasts after being placed
+
+HP_CONFIG_MINE_RANGE = 30 --Range in hammer units of the mines
+
+HP_CONFIG_MINE_MAGNITUDE = 50 --Magnitude of the mines, includes both damage and physics forces
+
 --Advanced config, don't touch anything here unless you know what you're doing.
 --Changing values here won't do much unless you change the core code to reflect your changes here.
 HP_CONFIG_TRACK_TYPES = { --Allows admins to change whether racers are confined to a track or not
