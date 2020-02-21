@@ -28,8 +28,17 @@ HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to 
 	["gmod_sent_vehicle_fphysics_base"] = true --Simfphys support, might need changed since the wheels count as separate entities
 }
 
+HP_CONFIG_PISTOLS = { --Pistols to randomly pick from on the hardcore mode
+	["weapon_pistol"] = true
+}
+
+HP_CONFIG_RIFLES = { --Rifles to randomly pick from on the nightmare mode
+	["weapon_smg1"] = true,
+	["weapon_ar2"] = true
+}
+
 --Advanced config, don't touch anything here unless you know what you're doing.
---Changing values here won't do anything unless you change the core code to reflect your changes here.
+--Changing values here won't do much unless you change the core code to reflect your changes here.
 HP_CONFIG_TRACK_TYPES = { --Allows admins to change whether racers are confined to a track or not
 	[1] = {
 		Name = "Standard",
@@ -41,21 +50,27 @@ HP_CONFIG_TRACK_TYPES = { --Allows admins to change whether racers are confined 
 	}
 }
 
-HP_CONFIG_RACE_MODES = { --[COMING SOON] Will allow admins to change how the races are run
+HP_CONFIG_RACE_MODES = { --Allows admins to change how the races are run
 	[1] = {
 		Name = "Normal",
 		Description = "Players cannot exit vehicles until the race is over."
 	},
 	[2] = {
 		Name = "Advanced",
-		Description = "Players can exit their vehicles and attempt to win the race on foot but can be stopped by police with tazers."
+		Description = "Players can exit their vehicles and attempt to win the race on foot but can be stopped by police with tazers.",
+		UseSpikestrip = true --Whether cops should spawn with spikestrips or not, either Automod or VCMod must be on the server for this to work
 	},
 	[3] = {
 		Name = "Hardcore",
-		Description = "Players can exit their vehicles and use pistols to try to slow down the police. Car health is reduced by 25%."
+		Description = "Players can exit their vehicles and use pistols to try to slow down the police. Car health is reduced by 25%.",
+		UseSpikestrip = true,
+		UseBeacons = true --Whether cops should spawn with beacons or not
 	},
 	[4] = {
 		Name = "Nightmare",
-		Description = "Players can exit their vehicles and use rifles to try to slow down the police. Car health is reduced by 50%."
+		Description = "Players can exit their vehicles and use rifles to try to slow down the police. Car health is reduced by 50%.",
+		UseSpikestrip = true,
+		UseBeacons = true,
+		UseMines = true --Whether cops should spawn with mines or not
 	}
 }

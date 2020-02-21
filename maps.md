@@ -53,10 +53,7 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 	<li>gm_mountainlake2</li>
 	<li>gm_range_f4</li>
 	<li>gm_secretconstruct_v3</li>
-	<li>gm_tornadoflatgrass</li>
-	<li>gm_tornadohighway_final</li>
-	<li>gm_tornadonightfall</li>
-	<li>gm_tornadovillage_final</li>
+	<li>gm_tornado*</li>
 	<li>gm_warmap_v5</li>
 	<li>rp_oldworld</li>
 	<li>gm_atomic</li>
@@ -67,10 +64,10 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 </ul>
 
 # Not Supported:
-Note: these maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
+Note: These maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
 <ul>
 	<li>rp_blackmesa_*</li>
-	<li>gm_underground_iv</li>
+	<li>gm_underground_*</li>
 	<li>rnl_*</li>
 	<li>drpz_*</li>
 	<li>fm_*</li>
@@ -86,7 +83,7 @@ Note: these maps are officially unsupported by me, but you can still add any map
 	<li>zs_*</li>
 	<li>rp_bmrf</li>
 	<li>rp_city17_*</li>
-	<li>rp_sectorc_beta</li>
+	<li>rp_sectorc_*</li>
 	<li>cinema_*</li>
 	<li>gm_city_blocks</li>
 	<li>gm_wick</li>

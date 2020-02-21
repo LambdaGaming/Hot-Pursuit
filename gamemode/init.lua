@@ -121,6 +121,7 @@ end
 util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
+	local racemode = GetGlobalInt( "RaceMode" )
 	for k,v in pairs( player.GetAll() ) do
 		if !v:InVehicle() then
 			HPNotifyAll( "Attempted to start a race but not all players are in their vehicles!" )
@@ -150,6 +151,9 @@ function StartRace( type, timelimit )
 		if GetGlobalInt( "RaceMode" ) == 1 then
 			v:GodEnable() --Players don't need to take damage if they can't get out of their cars
 		end
+
+		HPNotifyAll( "Race Mode: "..HP_CONFIG_RACE_MODES[racemode].Name )
+		HPNotifyAll( "Mode Description: "..HP_CONFIG_RACE_MODES[racemode].Description )
 	end
 
 	local countdown = HP_CONFIG_PRERACE_TIMER
@@ -165,7 +169,32 @@ function StartRace( type, timelimit )
 			for k,v in pairs( player.GetAll() ) do
 				if IsValid( v ) and v:InVehicle() then
 					local veh = v:GetVehicle()
+					local racemode = GetGlobalInt( "RaceMode" )
 					veh:Fire( "TurnOn" )
+
+					local modetable = HP_CONFIG_RACE_MODES[racemode]
+					if racemode == 3 then
+						if v:Team() != TEAM_NONE.ID then
+							v:Give( table.Random( HP_CONFIG_PISTOLS ) )
+						end
+					end
+					if racemode == 4 then
+						if v:Team() != TEAM_NONE.ID then
+							v:Give( table.Random( HP_CONFIG_RIFLES ) )
+						end
+					end
+
+					if v:Team() == TEAM_POLICE.ID then
+						if AM_TirePopEnabled and modetable.UseSpikestrip then --Automod support, VCMod support will come once I have a way to make sure the addon is mounted
+							v:Give( "weapon_spikestrip" )
+						end
+						if modetable.UseBeacons then
+							v:Give( "hp_beacon" )
+						end
+						if modetable.UseMines then
+							v:Give( "hp_mine" )
+						end
+					end
 				end
 			end
 			SetGlobalBool( "RaceCountdown", false )
@@ -378,8 +407,23 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		end
 		SetGlobalBool( "TrackType", tonumber( split[2] ) )
 
-		local tracktype = HP_CONFIG_TRACK_TYPES[tonumber(split[2])]
+		local tracktype = HP_CONFIG_TRACK_TYPES[tonumber( split[2] )]
 		HPNotifyAll( "The track type has been changed to "..tracktype.Name..". "..tracktype.Description )
+		return ""
+	end
+	if split[1] == "!racemode" then
+		if !ply:IsSuperAdmin() then
+			HPNotify( ply, "Only superadmins can use this command!" )
+			return ""
+		end
+		if !HP_CONFIG_RACE_MODES[tonumber( split[2] )] then
+			HPNotify( ply, "The track type you selected doesn't exist." )
+			return ""
+		end
+		SetGlobalBool( "RaceMode", tonumber( split[2] ) )
+
+		local racemode = HP_CONFIG_RACE_MODES[tonumber( split[2] )]
+		HPNotifyAll( "The race mode has been changed to "..racemode.Name.."." )
 		return ""
 	end
 end )
