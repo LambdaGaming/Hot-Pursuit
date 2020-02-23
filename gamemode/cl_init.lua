@@ -35,6 +35,7 @@ end )
 net.Receive( "HPPlayMusic", function( len, ply )
 	local randtrack = net.ReadString()
 	sound.PlayFile( "sound/"..randtrack, "", function( station )
+		if !IsValid( station ) then return end
 		station:SetVolume( HP_CONFIG_MUSIC_VOLUME )
 	end )
 end )

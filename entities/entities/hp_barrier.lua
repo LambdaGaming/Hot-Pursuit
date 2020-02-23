@@ -31,16 +31,24 @@ function ENT:Initialize()
 			phys:EnableMotion( false )
 		end
 
+		local changedvec
+		local ang = self:GetAngles()
+		if ang.y == 90 then
+			changedvec = Vector( 150, 0, 0 )
+		else
+			changedvec = Vector( 0, 150, 0 )
+		end
+
 		local e = ents.Create( "prop_dynamic" )
 		e:SetModel( self:GetModel() )
-		e:SetPos( self:GetPos() + Vector( 0, 150, 0 ) )
+		e:SetPos( self:GetPos() + changedvec )
 		e:SetAngles( self:GetAngles() )
 		e:SetParent( self )
 		e:Spawn()
 
 		local e2 = ents.Create( "prop_dynamic" )
 		e2:SetModel( self:GetModel() )
-		e2:SetPos( self:GetPos() + Vector( 0, -150, 0 ) )
+		e2:SetPos( self:GetPos() - changedvec )
 		e2:SetAngles( self:GetAngles() )
 		e2:SetParent( self )
 		e2:Spawn()
@@ -49,7 +57,7 @@ end
 
 if SERVER then
 	function ENT:Think()
-		for k,v in pairs( ents.FindInSphere( self:GetPos(), 200 ) ) do
+		for k,v in pairs( ents.FindInSphere( self:GetPos(), 150 ) ) do
 			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) then
 				local driver = v:GetDriver()
 				if driver.CutCooldown and driver.CutCooldown > CurTime() then return end

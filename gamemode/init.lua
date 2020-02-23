@@ -486,6 +486,7 @@ end )
 hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 	local version
 	local color_blue = Color( 0, 0, 255 )
+	MsgC( color_blue, "\nHot Pursuit version "..HP_VERSION.." successfully loaded.\n" )
 	http.Fetch( "https://raw.githubusercontent.com/LambdaGaming/Hot-Pursuit/master/version.txt",
 		function( body, len, headers, code )
 			version = tonumber( body )
@@ -501,7 +502,5 @@ hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 	end
 	if HP_VERSION < version then
 		MsgC( color_blue, "\nWarning: Hot Pursuit is out of date! Please update through the workshop or Github.\n" )
-		return
 	end
-	MsgC( color_blue, "\nHot Pursuit version "..version.." successfully loaded.\n" )
 end )
