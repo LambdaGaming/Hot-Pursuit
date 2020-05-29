@@ -119,7 +119,11 @@ end
 
 net.Receive( "HP_SyncTimer", function( len, ply )
 	local getracetimer = net.ReadInt( 32 )
+	local getracename = net.ReadString()
 	RaceTimer = getracetimer + CurTime()
+	HotPursuitMaps[game.GetMap()] = {} --Looks kinda sloppy but its more efficient than networking the whole table over since the client only needs this one piece of info
+	HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )] = {}
+	HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name = getracename
 end )
 
 net.Receive( "HP_RemoveClientTimer", function()

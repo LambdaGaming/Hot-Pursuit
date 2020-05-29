@@ -272,12 +272,14 @@ function StartRace( type, timelimit )
 end
 
 function SyncTimer( ply, all )
+	local name = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
 	net.Start( "HP_SyncTimer" )
 	if timer.Exists( "RaceTimer" ) then
 		net.WriteInt( timer.TimeLeft( "RaceTimer" ), 32 )
 	else
 		net.WriteInt( 0, 32 )
 	end
+	net.WriteString( name )
 	if all then
 		net.Broadcast()
 	else

@@ -3,7 +3,7 @@ GM.Name 	= "Hot Pursuit"
 GM.Author 	= "Lambda Gaming"
 GM.Email 	= "N/A"
 GM.Website 	= "N/A"
-HP_VERSION = 0.5
+HP_VERSION = 0.6
 
 DeriveGamemode( "sandbox" )
 
