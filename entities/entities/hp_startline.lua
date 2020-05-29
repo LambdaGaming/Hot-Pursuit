@@ -36,11 +36,17 @@ function ENT:Initialize()
 end
 
 function ENT:StartTouch( ent )
-	if CLIENT then return end
-	if !GetGlobalBool( "RaceStarted" ) then return end
-	local isveh = ent:IsVehicle()
-	if isveh then
-		local driver = ent:GetDriver()
+	if CLIENT or !GetGlobalBool( "RaceStarted" ) then return end
+	if HP_CONFIG_VEHICLE_CLASSES[ent:GetClass()] then
+		local driver
+		if ent:GetClass() == "gmod_sent_vehicle_fphysics_wheel" then --Simpfhy's support
+			local parent = ent:GetBaseEnt()
+			if IsValid( parent ) then
+				driver = parent.DriverSeat:GetDriver()
+			end
+		else
+			driver = ent:GetDriver()
+		end
 		if IsValid( driver ) and driver:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, driver ) then
 			if GetGlobalBool( "RaceCountdown" ) then
 				Disqualify( driver, "Crossing starting line during countdown." )

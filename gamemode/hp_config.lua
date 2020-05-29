@@ -25,7 +25,7 @@ HP_CONFIG_BLACKLIST = { --Blacklisted vehicle models that players can't spawn
 HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to spawn
 	["prop_vehicle_jeep"] = true,
 	["prop_vehicle_airboat"] = true,
-	["gmod_sent_vehicle_fphysics_base"] = true --Simfphys support, might need changed since the wheels count as separate entities
+	["gmod_sent_vehicle_fphysics_wheel"] = true, --Simfphys support
 }
 
 HP_CONFIG_PISTOLS = { --Pistols to randomly pick from on the hardcore mode

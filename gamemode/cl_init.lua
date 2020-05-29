@@ -203,7 +203,6 @@ local mat = Material( "icon16/bullet_error.png" )
 local function BeaconImage()
 	local pl = LocalPlayer()
 	local shootPos = pl:GetShootPos()
-	local ply = player.GetAll()
 	local plypos = vector_origin
 	local hisPos = pl:GetShootPos()
 	if pl:Team() == TEAM_POLICE.ID then

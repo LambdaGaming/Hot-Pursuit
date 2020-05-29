@@ -12,6 +12,14 @@ RacerTable = {}
 FinishedPly = {}
 
 function GM:PlayerLoadout( ply )
+	local DefaultWeapons = {
+		"weapon_physgun",
+		"gmod_camera",
+		"gmod_tool"
+	}
+	for k,v in pairs( DefaultWeapons ) do
+		ply:Give( v )
+	end
 	return true
 end
 
@@ -32,6 +40,28 @@ end
 function GM:PlayerSpawnSWEP( ply, class )
 	if ply:IsSuperAdmin() then return true end
 	return false
+end
+
+function GM:PhysgunPickup( ply, ent )
+	if ply:IsSuperAdmin() then return true end
+	if HP_CONFIG_VEHICLE_CLASSES[ent:GetClass()] and ent.VehOwner and ent.VehOwner == ply then
+		return true
+	end
+	return false
+end
+
+function GM:CanTool( ply, tr, tool )
+	if ply:IsSuperAdmin() then return true end
+	if HP_CONFIG_VEHICLE_CLASSES[tr.Entity:GetClass()] and tr.Entity.VehOwner and tr.Entity.VehOwner == ply and ( tool == "color" or tool == "material" ) then
+		return true
+	end
+	return false
+end
+
+function GM:PlayerSpawnedVehicle( ply, ent )
+	if HP_CONFIG_VEHICLE_CLASSES[ent:GetClass()] then
+		ent.VehOwner = ply
+	end
 end
 
 function GM:PlayerSpawnVehicle( ply, model )
@@ -56,10 +86,9 @@ function GM:CanExitVehicle( veh, ply )
 end
 
 function ChangeTeam( ply, team )
-	ply:StripWeapons()
+	if !IsValid( ply ) then return end
 	ply:SetTeam( team.ID )
 	ply:SetModel( table.Random( team.Playermodel ) )
-	hook.Run( "PlayerLoadout", ply )
 end
 
 util.AddNetworkString( "ChangeTeam" )
@@ -184,6 +213,7 @@ function StartRace( type, timelimit )
 						end
 					end
 
+					v:StripWeapons()
 					if v:Team() == TEAM_POLICE.ID then
 						if AM_TirePopEnabled and modetable.UseSpikestrip then --Automod support, VCMod support will come once I have a way to make sure the addon is mounted
 							v:Give( "weapon_spikestrip" )
@@ -296,6 +326,7 @@ function EndRace( forced, timed )
 			v.Finished = false
 			v:GodDisable()
 			v:ConCommand( "stopsound" )
+			hook.Run( "PlayerLoadout", v )
 		end
 	end
 	SetGlobalBool( "PreRace", false )
@@ -319,6 +350,7 @@ function EndRace( forced, timed )
 end
 
 function Disqualify( ply, reason )
+	if !IsValid( ply ) then return end
 	ChangeTeam( ply, TEAM_NONE )
 	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
 	table.RemoveByValue( RacerTable, ply )
@@ -483,6 +515,27 @@ hook.Add( "Think", "HP_CarTracker", function()
 	end
 end )
 
+hook.Add( "OnEntityWaterLevelChanged", "HP_CheckWaterLevel", function( ent, old, new )
+	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
+		local class = ent:GetClass()
+		local driver
+		if class == "prop_vehicle_jeep" then
+			if ent:IsVehicleBodyInWater() then
+				driver = ent:GetDriver()
+			end
+		elseif class == "gmod_sent_vehicle_fphysics_base" then
+			if ent.IsInWater then
+				driver = ent.DriverSeat:GetDriver()
+			end
+		end
+		if IsValid( driver ) then
+			if driver:Team() != TEAM_NONE.ID then
+				Disqualify( driver, "Vehicle is waterlogged." )
+			end
+		end
+	end
+end )
+
 hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 	local version
 	local color_blue = Color( 0, 0, 255 )
@@ -492,7 +545,7 @@ hook.Add( "InitPostEntity", "HP_VersionCheck", function()
 			version = tonumber( body )
 		end,
 		function( error )
-			MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Either Github is down or you don't have internet.\n" )
+			MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Error message: "..error.."\n" )
 			return
 		end
 	)
