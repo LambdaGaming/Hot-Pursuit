@@ -31,10 +31,12 @@ function ENT:Initialize()
 			phys:EnableMotion( false )
 		end
 
+		self.Position90 = false
 		local changedvec
 		local ang = self:GetAngles()
 		if ang.y == 90 then
 			changedvec = Vector( 150, 0, 0 )
+			self.Position90 = true
 		else
 			changedvec = Vector( 0, 150, 0 )
 		end
@@ -57,7 +59,15 @@ end
 
 if SERVER then
 	function ENT:Think()
-		for k,v in pairs( ents.FindInSphere( self:GetPos(), 150 ) ) do
+		local pos1, pos2
+		if self.Position90 then
+			pos1 = Vector( -180, -15, 0 )
+			pos2 = Vector( 180, 15, 50 )
+		else
+			pos1 = Vector( -15, -180, 0 )
+			pos2 = Vector( 15, 180, 50 )
+		end
+		for k,v in pairs( ents.FindInBox( self:GetPos() + pos1, self:GetPos() + pos2 ) ) do
 			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) then
 				local driver = v:GetDriver()
 				if driver.CutCooldown and driver.CutCooldown > CurTime() then return end
@@ -65,7 +75,7 @@ if SERVER then
 				driver.CutCooldown = CurTime() + 5
 			end
 		end
-		self:NextThink( CurTime() + 1 )
+		self:NextThink( CurTime() + 0.5 )
 		return true
 	end
 end

@@ -391,6 +391,9 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			HPNotify( ply, "A race has already started!" )
 			return ""
 		end
+		if !HotPursuitMaps[game.GetMap()] then
+			ReadCurrentMap()
+		end
 		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
 			HPNotify( ply, "The track layout you selected doesn't exist." )
 			return ""
