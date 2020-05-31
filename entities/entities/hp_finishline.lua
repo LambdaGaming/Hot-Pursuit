@@ -76,11 +76,9 @@ function ENT:StartTouch( ent )
 			end
 		end
 
-		EndRace()
-
 		local first = FinishedPly[1]
-		if !first then return end
 		HPNotifyAll( first:Nick().." has won the race!" )
+		EndRace()
 		timer.Remove( "FinishTimer" )
 	end
 end

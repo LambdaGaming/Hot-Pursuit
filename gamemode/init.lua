@@ -9,6 +9,7 @@ include( "hp_maps.lua" )
 include( "hp_config.lua" )
 
 RacerTable = {}
+CopTable = {}
 FinishedPly = {}
 
 function GM:PlayerLoadout( ply )
@@ -50,9 +51,18 @@ function GM:PhysgunPickup( ply, ent )
 	return false
 end
 
+function GM:CanDrive( ply, ent )
+	return false
+end
+
 function GM:CanTool( ply, tr, tool )
 	if ply:IsSuperAdmin() then return true end
-	if HP_CONFIG_VEHICLE_CLASSES[tr.Entity:GetClass()] and tr.Entity.VehOwner and tr.Entity.VehOwner == ply and ( tool == "color" or tool == "material" ) then
+	local allowed = {
+		["colour"] = true,
+		["material"] = true,
+		["trails"] = true
+	}
+	if HP_CONFIG_VEHICLE_CLASSES[tr.Entity:GetClass()] and tr.Entity.VehOwner and tr.Entity.VehOwner == ply and allowed[tool] then
 		return true
 	end
 	return false
@@ -152,7 +162,7 @@ function StartRace( type, timelimit )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
 	local racemode = GetGlobalInt( "RaceMode" )
 	for k,v in pairs( player.GetAll() ) do
-		if !v:InVehicle() then
+		if v:Team() != TEAM_NONE.ID and !v:InVehicle() then
 			HPNotifyAll( "Attempted to start a race but not all players are in their vehicles!" )
 			return
 		end
@@ -180,10 +190,9 @@ function StartRace( type, timelimit )
 		if GetGlobalInt( "RaceMode" ) == 1 then
 			v:GodEnable() --Players don't need to take damage if they can't get out of their cars
 		end
-
-		HPNotifyAll( "Race Mode: "..HP_CONFIG_RACE_MODES[racemode].Name )
-		HPNotifyAll( "Mode Description: "..HP_CONFIG_RACE_MODES[racemode].Description )
 	end
+	HPNotifyAll( "Race Mode: "..HP_CONFIG_RACE_MODES[racemode].Name )
+	HPNotifyAll( "Mode Description: "..HP_CONFIG_RACE_MODES[racemode].Description )
 
 	local countdown = HP_CONFIG_PRERACE_TIMER
 	SetGlobalBool( "RaceCountdown", true )
@@ -215,6 +224,7 @@ function StartRace( type, timelimit )
 
 					v:StripWeapons()
 					if v:Team() == TEAM_POLICE.ID then
+						table.insert( CopTable, v )
 						if AM_TirePopEnabled and modetable.UseSpikestrip then --Automod support, VCMod support will come once I have a way to make sure the addon is mounted
 							v:Give( "weapon_spikestrip" )
 						end
@@ -349,6 +359,8 @@ function EndRace( forced, timed )
 	timer.Remove( "DisqualifyTimer" )
 	RemoveClientTimer()
 	FinishedPly = {}
+	RacerTable = {}
+	CopTable = {}
 end
 
 function Disqualify( ply, reason )
@@ -356,9 +368,14 @@ function Disqualify( ply, reason )
 	ChangeTeam( ply, TEAM_NONE )
 	HPNotifyAll( ply:Nick().." has been disqualified from the race! Reason: "..reason )
 	table.RemoveByValue( RacerTable, ply )
+	table.RemoveByValue( CopTable, ply )
 	if #RacerTable == 0 then
 		EndRace()
-		HPNotifyAll( "The last player in the race has been disqualified. Nobody wins." )
+		HPNotifyAll( "The last racer has been disqualified. Nobody wins." )
+	end
+	if #CopTable == 0 then
+		EndRace()
+		HPNotifyAll( "The last cop has been disqualified. Nobody wins." )
 	end
 end
 
@@ -426,6 +443,9 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			HPNotify( ply, "A race has already started!" )
 			return ""
 		end
+		if !HotPursuitMaps[game.GetMap()] then
+			ReadCurrentMap()
+		end
 		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
 			HPNotify( ply, "The track layout you selected doesn't exist." )
 			return ""
@@ -437,6 +457,9 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		if !ply:IsSuperAdmin() then
 			HPNotify( ply, "Only superadmins can use this command!" )
 			return ""
+		end
+		if !HotPursuitMaps[game.GetMap()] then
+			ReadCurrentMap()
 		end
 		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
 			HPNotify( ply, "The track type you selected doesn't exist." )
@@ -452,6 +475,9 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 		if !ply:IsSuperAdmin() then
 			HPNotify( ply, "Only superadmins can use this command!" )
 			return ""
+		end
+		if !HotPursuitMaps[game.GetMap()] then
+			ReadCurrentMap()
 		end
 		if !HP_CONFIG_RACE_MODES[tonumber( split[2] )] then
 			HPNotify( ply, "The track type you selected doesn't exist." )
@@ -525,7 +551,7 @@ hook.Add( "OnEntityWaterLevelChanged", "HP_CheckWaterLevel", function( ent, old,
 		local class = ent:GetClass()
 		local driver
 		if class == "prop_vehicle_jeep" then
-			if ent:IsVehicleBodyInWater() then
+			if ent:IsVehicleBodyInWater() then --Doesn't seem to work on all vehicles, needs more testing
 				driver = ent:GetDriver()
 			end
 		elseif class == "gmod_sent_vehicle_fphysics_base" then
