@@ -50,7 +50,7 @@ if SERVER then
 
 	function ENT:Think()
 		for k,v in pairs( ents.FindInSphere( self:GetPos(), HP_CONFIG_MINE_RANGE ) ) do
-			if v:IsVehicle() and IsValid( v:GetDriver() ) then
+			if ( v:IsVehicle() or v:GetClass() == "gmod_sent_vehicle_fphysics_base" ) and IsValid( v:GetDriver() ) then
 				Explode( self:GetPos(), HP_CONFIG_MINE_MAGNITUDE, 0 )
 				self:Remove()
 			end

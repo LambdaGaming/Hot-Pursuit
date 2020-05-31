@@ -29,12 +29,12 @@ HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to 
 }
 
 HP_CONFIG_PISTOLS = { --Pistols to randomly pick from on the hardcore mode
-	["weapon_pistol"] = true
+	"weapon_pistol"
 }
 
 HP_CONFIG_RIFLES = { --Rifles to randomly pick from on the nightmare mode
-	["weapon_smg1"] = true,
-	["weapon_ar2"] = true
+	"weapon_smg1",
+	"weapon_ar2"
 }
 
 HP_CONFIG_BEACON_TIME = 30 --Time in seconds that each beacon lasts after being placed

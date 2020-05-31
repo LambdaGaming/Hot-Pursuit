@@ -51,6 +51,14 @@ function GM:PhysgunPickup( ply, ent )
 	return false
 end
 
+function GM:PlayerSetModel( ply )
+	if ply:Team() == TEAM_RACER.ID then
+		ply:SetModel( table.Random( TEAM_RACER.Playermodel ) )
+	elseif ply:Team() == TEAM_POLICE.ID then
+		ply:SetModel( table.Random( TEAM_POLICE.Playermodel ) )
+	end
+end
+
 function GM:CanDrive( ply, ent )
 	return false
 end
@@ -76,7 +84,7 @@ end
 
 function GM:PlayerSpawnVehicle( ply, model )
 	if GetGlobalBool( "RaceStarted" ) then
-		HPNotify( "You cannot spawn vehicles during a race." )
+		HPNotify( ply, "You cannot spawn vehicles during a race." )
 		return false
 	end
 	if HP_CONFIG_BLACKLIST and HP_CONFIG_BLACKLIST[model] then
@@ -91,6 +99,7 @@ function GM:PlayerSpawnVehicle( ply, model )
 end
 
 function GM:CanExitVehicle( veh, ply )
+	if GetGlobalBool( "RaceCountdown" ) then return false end
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then return false end
 	return true
 end
@@ -209,6 +218,7 @@ function StartRace( type, timelimit )
 					local veh = v:GetVehicle()
 					local racemode = GetGlobalInt( "RaceMode" )
 					veh:Fire( "TurnOn" )
+					v:StripWeapons()
 
 					local modetable = HP_CONFIG_RACE_MODES[racemode]
 					if racemode == 3 then
@@ -222,10 +232,9 @@ function StartRace( type, timelimit )
 						end
 					end
 
-					v:StripWeapons()
 					if v:Team() == TEAM_POLICE.ID then
 						table.insert( CopTable, v )
-						if AM_TirePopEnabled and modetable.UseSpikestrip then --Automod support, VCMod support will come once I have a way to make sure the addon is mounted
+						if GetConVar( "AM_Config_TirePopEnabled" ):GetBool() and modetable.UseSpikestrip then --Automod support, VCMod support will come once I have a way to make sure the addon is mounted
 							v:Give( "weapon_spikestrip" )
 						end
 						if modetable.UseBeacons then
@@ -330,7 +339,8 @@ function EndRace( forced, timed )
 			["hp_finishline"] = true,
 			["hp_startline"] = true,
 			["automod_spikestrip"] = true,
-			["hp_barrier"] = true
+			["hp_barrier"] = true,
+			["hp_mine"] = true
 		}
 		if v:IsVehicle() then v.Finished = false end
 		if removedents[v:GetClass()] then v:Remove() end
@@ -338,6 +348,7 @@ function EndRace( forced, timed )
 			v.Finished = false
 			v:GodDisable()
 			v:ConCommand( "stopsound" )
+			v:StripWeapons()
 			hook.Run( "PlayerLoadout", v )
 		end
 	end
@@ -371,11 +382,10 @@ function Disqualify( ply, reason )
 	table.RemoveByValue( CopTable, ply )
 	if #RacerTable == 0 then
 		EndRace()
-		HPNotifyAll( "The last racer has been disqualified. Nobody wins." )
-	end
-	if #CopTable == 0 then
+		HPNotifyAll( "The last racer has been disqualified. Police win." )
+	elseif #CopTable == 0 then
 		EndRace()
-		HPNotifyAll( "The last cop has been disqualified. Nobody wins." )
+		HPNotifyAll( "The last cop has been disqualified. Racers win." )
 	end
 end
 
@@ -498,8 +508,14 @@ hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 end )
 
 hook.Add( "PlayerDeath", "HP_DeathDisqualify", function( victim, inflictor, attacker )
-	if victim:Team() == TEAM_RACER.ID and ( GetGlobalBool( "RaceStarted" ) or GetGlobalBool( "RaceCountdown" ) ) then
-		Disqualify( victim, "Died in the race." )
+	if GetGlobalBool( "RaceStarted" ) or GetGlobalBool( "RaceCountdown" ) then
+		if victim:Team() == TEAM_RACER.ID then
+			Disqualify( victim, "Died in the race." )
+			table.RemoveByValue( RacerTable, victim )
+		elseif victim:Team() == TEAM_POLICE.ID then
+			Disqualify( victim, "Died in the race." )
+			table.RemoveByValue( CopTable, victim )
+		end
 	end
 end )
 
@@ -550,8 +566,8 @@ hook.Add( "OnEntityWaterLevelChanged", "HP_CheckWaterLevel", function( ent, old,
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 then
 		local class = ent:GetClass()
 		local driver
-		if class == "prop_vehicle_jeep" then
-			if ent:IsVehicleBodyInWater() then --Doesn't seem to work on all vehicles, needs more testing
+		if class == "prop_vehicle_jeep" and IsValid( ent:GetDriver() ) then
+			if new == 3 then
 				driver = ent:GetDriver()
 			end
 		elseif class == "gmod_sent_vehicle_fphysics_base" then
