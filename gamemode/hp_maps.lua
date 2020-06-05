@@ -1,10 +1,12 @@
 
 HotPursuitMaps = {} --Initializes the map table, don't touch
+angle_ninety = Angle( 0, 90, 0 ) --Global variable for optimization, don't touch
 
---[[ HotPursuitMaps["rp_rockford_v2b"] = { --Example of a full feature map
-	[1] = { --Layout of the track
+--[[
+HotPursuitMaps["rp_rockford_v2b"] = { --Example of a full feature map
+	[1] = { --Layout of the track, the '[1] =' isn't required but helps keeps things organized
 		Name = "Standard",
-		Description = "Standard track layout around Rockford.",
+		Description = "Standard track layout.",
 		BlockSpawns = { --Positions of the barriers that prevent racers from going off-course, each barrier has 2 extra barriers spawned on either side of it
 			{ vector_origin, angle_zero }, --Angle yaw must be either 0 or 90
 		},
@@ -32,9 +34,11 @@ HotPursuitMaps = {} --Initializes the map table, don't touch
 			Ang = angle_zero
 		}
 	}
-} ]]
+}
+]]
 
---[[ HotPursuitMaps["fightspace3b"] = { --Example of a free roam only map
+--[[
+HotPursuitMaps["fightspace3b"] = { --Example of a free roam only map
 	[1] = {
 		Name = "Standard Free Roam",
 		Description = "Standard track, free roam only.",
@@ -44,7 +48,8 @@ HotPursuitMaps = {} --Initializes the map table, don't touch
 			Ang = angle_zero
 		}
 	}
-} ]]
+}
+]]
 
 --Functions to read/write map info in the file system, don't touch
 if SERVER then
@@ -57,14 +62,26 @@ if SERVER then
 		local map = game.GetMap()
 		if !HotPursuitMaps[map] then
 			MsgC( color_blue, "Info for this map not found. Attempting to load from file..." )
-			if file.Exists( "hotpursuit/maps/"..map..".json", "DATA" ) then
-				local info = file.Read( "hotpursuit/maps/"..map..'.json', "DATA" )
-				local convert = util.JSONToTable( info )
-				HotPursuitMaps[map] = convert
-				MsgC( color_blue, "Successfully loaded map info from file." )
-				return
+			local infoextra = file.Read( "hotpursuit/maps/"..map..'.json', "DATA" )
+			local info = file.Read( "gamemodes/hotpursuit/content/data/hotpursuit/maps/"..map..".json", "GAME" )
+			local filefoundinmaindir = false
+			local convert
+			if info == nil then
+				MsgC( color_blue, "Map info not found in gamemode directory. Checking main data directory." )
+				if infoextra == nil then
+					MsgC( color_blue, "Error: Could not find info for this map. This map may be unsupported." )
+					return
+				end
+			else
+				filefoundinmaindir = true
 			end
-			MsgC( color_blue, "Error: Could not find info for this map. This map may be unsupported." )
+			if filefoundinmaindir then
+				convert = util.JSONToTable( info )
+			else
+				convert = util.JSONToTable( infoextra )
+			end
+			HotPursuitMaps[map] = convert
+			MsgC( color_blue, "Successfully loaded map info from file." )
 			return
 		end
 		MsgC( color_blue, "Info for this map already exists in memory. No action taken." )

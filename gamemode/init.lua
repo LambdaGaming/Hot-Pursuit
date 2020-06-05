@@ -291,6 +291,7 @@ function StartRace( type, timelimit )
 end
 
 function SyncTimer( ply, all )
+	if !HotPursuitMaps or !HotPursuitMaps[game.GetMap()] then return end
 	local name = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
 	net.Start( "HP_SyncTimer" )
 	if timer.Exists( "RaceTimer" ) then
@@ -531,15 +532,6 @@ hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam ) --Automod 
 	end
 end )
 
-hook.Add( "VC_engineExploded", "HP_VCModDamage", function( veh ) --VCMod damage support
-	if GetGlobalBool( "RaceStarted" ) then
-		local driver = veh:GetDriver()
-		if IsValid( driver ) and driver:Team() != TEAM_NONE.ID then
-			Disqualify( driver, "Vehicle was destroyed." )
-		end
-	end
-end )
-
 local function SaveVehPosAng( ply )
 	local veh = ply:GetVehicle()
 	local vehpos = veh:GetPos()
@@ -554,7 +546,7 @@ hook.Add( "Think", "HP_CarTracker", function()
 	for k,v in pairs( player.GetAll() ) do
 		if v.TrackerCooldown and v.TrackerCooldown > CurTime() then return end
 		if IsValid( v ) and v:InVehicle() then
-			if v:Team() == TEAM_RACER.ID or v:Team() == TEAM_POLICE.ID then
+			if v:Team() != TEAM_NONE.ID then
 				SaveVehPosAng( v )
 				v.TrackerCooldown = CurTime() + 3
 			end

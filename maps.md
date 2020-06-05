@@ -1,14 +1,14 @@
 Note: An asterisk (*) at the end of a name indicates that all maps of that type are supported/unsupported. Use Ctrl + F to search for a map before suggesting it.
 
 # Currently Supported Maps (Full):
-- rp_rockford_v2b
+- [rp_rockford_v2b](https://steamcommunity.com/sharedfiles/filedetails/?id=622810630)
+- [rp_evocity2_v5p](https://steamcommunity.com/sharedfiles/filedetails/?id=538207599)
+- [rp_florida_v2](https://steamcommunity.com/workshop/filedetails/?id=1526892946)
 
 # Currently Supported Maps (Free Roam Only):
 - None
 
 # Planned Support (Full):
-- rp_evocity2_v5p
-- rp_florida_v2
 - rp_truenorth_v1a
 - rp_newexton2_v4h
 - gm_balkins
@@ -29,6 +29,8 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - gm_goldencity*
 - gm_york
 - gm_echocity_circuit_v1
+- rp_southside
+- rp_unioncity
 
 # Planned Support (Free Roam Only):
 - fightspace3b

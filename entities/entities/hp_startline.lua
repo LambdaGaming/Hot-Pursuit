@@ -32,6 +32,14 @@ function ENT:Initialize()
 			phys:EnableMotion( false )
 		end
 		self:SetUseType( SIMPLE_USE )
+
+		local e = ents.Create( "prop_dynamic" )
+		e:SetModel( "models/hunter/triangles/075x075mirrored.mdl" )
+		e:SetMaterial( "models/weapons/v_slam/new light2" )
+		e:SetPos( self:GetPos() + Vector( 0, 0, 0.5 ) )
+		e:SetAngles( self:GetAngles() )
+		e:SetParent( self )
+		e:Spawn()
 	end
 end
 
