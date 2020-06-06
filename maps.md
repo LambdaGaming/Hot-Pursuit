@@ -4,13 +4,13 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - [rp_rockford_v2b](https://steamcommunity.com/sharedfiles/filedetails/?id=622810630)
 - [rp_evocity2_v5p](https://steamcommunity.com/sharedfiles/filedetails/?id=538207599)
 - [rp_florida_v2](https://steamcommunity.com/workshop/filedetails/?id=1526892946)
+- [rp_truenorth_v1a](https://steamcommunity.com/sharedfiles/filedetails/?id=1601428630)
+- [rp_newexton2_v4h](https://steamcommunity.com/sharedfiles/filedetails/?id=1318768443)
 
 # Currently Supported Maps (Free Roam Only):
 - None
 
 # Planned Support (Full):
-- rp_truenorth_v1a
-- rp_newexton2_v4h
 - gm_balkins
 - gm_bigcity
 - gm_bigisland

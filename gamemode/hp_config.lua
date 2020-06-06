@@ -53,6 +53,10 @@ HP_CONFIG_TRACK_TYPES = { --Allows admins to change whether racers are confined 
 	[2] = {
 		Name = "Free Roam",
 		Description = "Barriers and finish line don't spawn, racers are free to drive anywhere on the map, time limit is always enabled."
+	},
+	[3] = {
+		Name = "Reversed",
+		Description = "Same as standard but the start/finish lines are swapped places."
 	}
 }
 

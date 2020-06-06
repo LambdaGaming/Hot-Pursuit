@@ -1,76 +1,14 @@
 [
 	{
-		"Description": "Standard track layout.",
+		"Description": "Starts at spawn, loops around city, goes down the big hill, then ends at farms.",
 		"FinishPos": {
-			"Ang": "{0 90 0}",
-			"Pos": "[11031 -12295 -1727]"
-		},
-		"Name": "Standard",
-		"StartPos": {
-			"Ang": "{0 90 0}",
-			"Pos": "[5921 5208 68]"
-		},
-		"BlockSpawns": [
-			[
-				"[5922 4588 66]",
-				"{0 90 0}"
-			],
-			[
-				"[-1922 2687 70]",
-				"{0 0 0}"
-			],
-			[
-				"[-1702 2340 68]",
-				"{0 90 0}"
-			],
-			[
-				"[-1480 1990 68]",
-				"{0 0 0}"
-			],
-			[
-				"[-1184 1701 68]",
-				"{0 90 0}"
-			],
-			[
-				"[512 2476 68]",
-				"{0 90 0}"
-			],
-			[
-				"[597 1763 68]",
-				"{0 90 0}"
-			],
-			[
-				"[3012 -709 68]",
-				"{0 0 0}"
-			],
-			[
-				"[-920 -701 68]",
-				"{0 0 0}"
-			],
-			[
-				"[-6736 2210 129]",
-				"{0 90 0}"
-			],
-			[
-				"[7400 -7958 -1824]",
-				"{0 90 0}"
-			],
-			[
-				"[11241 1126 -1823]",
-				"{0 0 0}"
-			]
-		]
-	},
-	{
-		"Description": "Same as standard but the places of the starting line and finish line are swapped.",
-		"FinishPos": {
-			"Ang": "{0 90 0}",
-			"Pos": "[5921 5208 68]"
-		},
-		"Name": "Reversed",
-		"StartPos": {
 			"Ang": "{0 -90 0}",
 			"Pos": "[11031 -12295 -1727]"
+		},
+		"Name": "Spawn -> Farm",
+		"StartPos": {
+			"Ang": "{0 90 0}",
+			"Pos": "[5921 5208 68]"
 		},
 		"BlockSpawns": [
 			[

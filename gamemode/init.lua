@@ -158,10 +158,17 @@ end
 function PreRace( type )
 	SetGlobalBool( "PreRace", true )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
-	local e = ents.Create( "hp_startline" )
-	e:SetPos( mapconfig.StartPos.Pos )
-	e:SetAngles( mapconfig.StartPos.Ang )
-	e:Spawn()
+	if GetGlobalInt( "TrackType" ) == 3 then
+		local e = ents.Create( "hp_startline" )
+		e:SetPos( mapconfig.FinishPos.Pos )
+		e:SetAngles( mapconfig.FinishPos.Ang )
+		e:Spawn()
+	else
+		local e = ents.Create( "hp_startline" )
+		e:SetPos( mapconfig.StartPos.Pos )
+		e:SetAngles( mapconfig.StartPos.Ang )
+		e:Spawn()
+	end
 	HPNotifyAll( "The pre-race has started. Racers, get to the starting line, which is outlined in green, and wait for the race to begin." )
 	HPNotifyAll( "Cops, hide along the track and wait for racers to pass you." )
 end
@@ -177,23 +184,16 @@ function StartRace( type, timelimit )
 		end
 		
 		local veh = v:GetVehicle()
-		if v:Team() == TEAM_POLICE.ID then
-			veh:Fire( "TurnOff" )
-			--[[ for a,b in RandomPairs( mapconfig.PoliceSpawns ) do
-				veh:SetPos( b[1] )
-				veh:SetAngles( b[2] )
-			end ]]
-		end
-		if v:Team() == TEAM_RACER.ID then
-			veh:Fire( "TurnOff" )
-			--[[ for a,b in RandomPairs( mapconfig.CarSpawns ) do
-				veh:SetPos( b[1] )
-				veh:SetAngles( b[2] )
-			end ]]
-		end
 		if v:Team() == TEAM_NONE.ID then
 			HPNotify( v, "You are a spectator of this race since you didn't pick a team." )
 			if IsValid( veh ) then veh:Remove() end
+		else
+			if veh.fphysSeat then
+				local parent = veh.base
+				parent:StopEngine()
+			else
+				veh:Fire( "TurnOff" )
+			end
 		end
 
 		if GetGlobalInt( "RaceMode" ) == 1 then
@@ -217,7 +217,12 @@ function StartRace( type, timelimit )
 				if IsValid( v ) and v:InVehicle() then
 					local veh = v:GetVehicle()
 					local racemode = GetGlobalInt( "RaceMode" )
-					veh:Fire( "TurnOn" )
+					if veh.fphysSeat then
+						local parent = veh.base
+						parent:StartEngine()
+					else
+						veh:Fire( "TurnOn" )
+					end
 					v:StripWeapons()
 
 					local modetable = HP_CONFIG_RACE_MODES[racemode]
@@ -266,16 +271,35 @@ function StartRace( type, timelimit )
 	HPNotifyAll( "The race will begin soon!" )
 	
 	if !GetGlobalBool( "PreRace" ) then
-		local e = ents.Create( "hp_startline" )
-		e:SetPos( mapconfig.StartPos.Pos )
-		e:SetAngles( mapconfig.StartPos.Ang )
-		e:Spawn()
+		if GetGlobalInt( "TrackType" ) == 3 then
+			local e = ents.Create( "hp_startline" )
+			e:SetPos( mapconfig.FinishPos.Pos )
+			e:SetAngles( mapconfig.FinishPos.Ang )
+			e:Spawn()
+		else
+			local e = ents.Create( "hp_startline" )
+			e:SetPos( mapconfig.StartPos.Pos )
+			e:SetAngles( mapconfig.StartPos.Ang )
+			e:Spawn()
+		end
 	end
 
 	if GetGlobalInt( "TrackType" ) == 1 then
 		local e = ents.Create( "hp_finishline" )
 		e:SetPos( mapconfig.FinishPos.Pos )
 		e:SetAngles( mapconfig.FinishPos.Ang )
+		e:Spawn()
+
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
+			e:Spawn()
+		end
+	elseif GetGlobalInt( "TrackType" ) == 3 then
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.StartPos.Pos )
+		e:SetAngles(mapconfig.StartPos.Ang )
 		e:Spawn()
 
 		for k,v in ipairs( mapconfig.BlockSpawns ) do
@@ -351,6 +375,7 @@ function EndRace( forced, timed )
 			v:ConCommand( "stopsound" )
 			v:StripWeapons()
 			hook.Run( "PlayerLoadout", v )
+			v.VehResetPos = {}
 		end
 	end
 	SetGlobalBool( "PreRace", false )
@@ -395,11 +420,24 @@ local function ResetVehicle( len, ply )
 	if IsValid( ply ) and ply:InVehicle() then
 		local reset = ply.VehResetPos
 		local veh = ply:GetVehicle()
-		if reset then
-			veh:SetPos( reset.Pos )
-			veh:SetAngles( reset.Ang )
-			veh:SetRenderFX( kRenderFxStrobeFaster )
-			timer.Simple( 3, function() veh:SetRenderFX( kRenderFxNone ) end )
+		local vehicle
+		if reset and reset.Pos and reset.Ang then
+			if veh.fphysSeat then
+				vehicle = veh.base
+			else
+				vehicle = veh
+			end
+			if vehicle:GetVelocity():Length() > 100 then
+				HPNotify( ply, "Please slow down before resetting your vehicle to avoid physics glitches." )
+				return
+			end
+			vehicle:SetPos( reset.Pos )
+			vehicle:SetAngles( reset.Ang )
+			vehicle:SetRenderFX( kRenderFxStrobeFaster )
+			timer.Simple( 3, function()
+				if !IsValid( vehicle ) then return end
+				vehicle:SetRenderFX( kRenderFxNone )
+			end )
 			HPNotify( ply, "Successfully reset your vehicle." )
 		else
 			HPNotify( ply, "There is no place for you to reset to." )
@@ -469,10 +507,8 @@ hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
 			HPNotify( ply, "Only superadmins can use this command!" )
 			return ""
 		end
-		if !HotPursuitMaps[game.GetMap()] then
-			ReadCurrentMap()
-		end
-		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
+
+		if !HP_CONFIG_TRACK_TYPES[tonumber( split[2] )] then
 			HPNotify( ply, "The track type you selected doesn't exist." )
 			return ""
 		end
@@ -532,23 +568,43 @@ hook.Add( "AM_OnTakeDamage", "HP_AutomodDamage", function( veh, dam ) --Automod 
 	end
 end )
 
+hook.Add( "EntityTakeDamage", "HP_SimfphysDamage", function( veh, dam ) --Simfphy's damage support
+	if veh:GetClass() == "gmod_sent_vehicle_fphysics_base" then
+		local driver = veh:GetDriver()
+		if IsValid( driver ) and driver:Team() != TEAM_NONE.ID then
+			local health = veh:GetCurHealth()
+			if health <= 0 or veh.destroyed then
+				Disqualify( driver, "Vehicle was destroyed." )
+			end
+		end
+	end
+end )
+
 local function SaveVehPosAng( ply )
 	local veh = ply:GetVehicle()
-	local vehpos = veh:GetPos()
-	local vehang = veh:GetAngles()
+	local vehpos
+	local vehang
+	if veh.fphysSeat then
+		local parent = veh.base
+		vehpos = parent:GetPos()
+		vehang = parent:GetAngles()
+	else
+		vehpos = veh:GetPos()
+		vehang = veh:GetAngles()
+	end
 	ply.VehResetPos = {}
 	ply.VehResetPos.Pos = vehpos
 	ply.VehResetPos.Ang = vehang
 end
 
+local TrackerCooldown = 0
 hook.Add( "Think", "HP_CarTracker", function()
-	if !GetGlobalBool( "RaceStarted" ) then return end
+	if !GetGlobalBool( "RaceStarted" ) or TrackerCooldown > CurTime() then return end
 	for k,v in pairs( player.GetAll() ) do
-		if v.TrackerCooldown and v.TrackerCooldown > CurTime() then return end
 		if IsValid( v ) and v:InVehicle() then
 			if v:Team() != TEAM_NONE.ID then
 				SaveVehPosAng( v )
-				v.TrackerCooldown = CurTime() + 3
+				TrackerCooldown = CurTime() + 3
 			end
 		end
 	end
@@ -575,7 +631,13 @@ hook.Add( "OnEntityWaterLevelChanged", "HP_CheckWaterLevel", function( ent, old,
 	end
 end )
 
-hook.Add( "InitPostEntity", "HP_VersionCheck", function()
+hook.Add( "InitPostEntity", "HP_InitPostEntity", function()
+	if simfphys then
+		RunConsoleCommand( "sv_simfphys_enabledamage", 1 )
+		RunConsoleCommand( "sv_simfphys_damagemultiplicator", 1.5 )
+		RunConsoleCommand( "sv_simfphys_fuel", 0 )
+	end
+
 	local version
 	local color_blue = Color( 0, 0, 255 )
 	MsgC( color_blue, "\nHot Pursuit version "..HP_VERSION.." successfully loaded.\n" )

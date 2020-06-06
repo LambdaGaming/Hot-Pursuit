@@ -20,8 +20,8 @@ HotPursuitMaps["rp_rockford_v2b"] = { --Example of a full feature map
 		}
 	},
 	[2] = {
-		Name = "Reversed",
-		Description = "Same as standard but the places of the starting line and finish line are swapped.",
+		Name = "Urban Sprint",
+		Description = "Track stays inside the city.",
 		BlockSpawns = {
 			{ vector_origin, angle_zero }
 		},
@@ -56,20 +56,20 @@ if SERVER then
 	local color_blue = Color( 0, 0, 255 )
 	function ReadCurrentMap()
 		if !HotPursuitMaps then
-			MsgC( color_blue, "Error: It seems like the main map table doesn't exist. The gamemode will not work without it. Did you mess with something you weren't supposed to?" )
+			MsgC( color_blue, "\nError: It seems like the main map table doesn't exist. The gamemode will not work without it. Did you mess with something you weren't supposed to?\n" )
 			return
 		end
 		local map = game.GetMap()
 		if !HotPursuitMaps[map] then
-			MsgC( color_blue, "Info for this map not found. Attempting to load from file..." )
+			MsgC( color_blue, "\nInfo for this map not found. Attempting to load from file...\n" )
 			local infoextra = file.Read( "hotpursuit/maps/"..map..'.json', "DATA" )
 			local info = file.Read( "gamemodes/hotpursuit/content/data/hotpursuit/maps/"..map..".json", "GAME" )
 			local filefoundinmaindir = false
 			local convert
 			if info == nil then
-				MsgC( color_blue, "Map info not found in gamemode directory. Checking main data directory." )
+				MsgC( color_blue, "\nMap info not found in gamemode directory. Checking main data directory.\n" )
 				if infoextra == nil then
-					MsgC( color_blue, "Error: Could not find info for this map. This map may be unsupported." )
+					MsgC( color_blue, "\nError: Could not find info for this map. This map may be unsupported.\n" )
 					return
 				end
 			else
@@ -81,10 +81,10 @@ if SERVER then
 				convert = util.JSONToTable( infoextra )
 			end
 			HotPursuitMaps[map] = convert
-			MsgC( color_blue, "Successfully loaded map info from file." )
+			MsgC( color_blue, "\nSuccessfully loaded map info from file.\n" )
 			return
 		end
-		MsgC( color_blue, "Info for this map already exists in memory. No action taken." )
+		MsgC( color_blue, "\nInfo for this map already exists in memory. No action taken.\n" )
 	end
 	hook.Add( "InitPostEntity", "HP_LoadMapInfo", ReadCurrentMap )
 
@@ -92,7 +92,7 @@ if SERVER then
 		for k,v in pairs( HotPursuitMaps ) do
 			if !file.Exists( "hotpursuit/maps", "DATA" ) then file.CreateDir( "hotpursuit/maps" ) end
 			file.Write( "hotpursuit/maps/"..k..".json", util.TableToJSON( v, true ) )
-			MsgC( color_blue, "Map info successfully written to file. You can safely delete the Lua tables in hp_maps.lua." )
+			MsgC( color_blue, "\nMap info successfully written to file. You can safely delete the Lua tables in hp_maps.lua.\n" )
 		end
 	end
 	concommand.Add( "hp_writemaps", WriteMapsToFile )
