@@ -7,6 +7,28 @@ local MenuColor = Color( 49, 53, 61, 200 )
 local ButtonColor = Color( 230, 93, 80, 255 )
 local RaceTimer = 0
 
+CreateClientConVar( "HP_AdminKey", KEY_F3, true, false, "Sets the key for the admin menu." )
+CreateClientConVar( "HP_TeamKey", KEY_F4, true, false, "Sets the key for the team selection menu." )
+CreateClientConVar( "HP_ResetKey", KEY_BACKSLASH, true, false, "Sets the key for vehicle reset." )
+
+hook.Add( "PopulateToolMenu", "HP_KeyMenu", function()
+	spawnmenu.AddToolMenuOption( "Options", "Hot Pursuit", "HPKeys", "Controls", "", "", function( panel )
+		panel:AddControl( "Header", {
+			Description = "Change your Hot Pursuit controls here."
+		} )
+		panel:AddControl( "Numpad", {
+			Label = "Admin Menu Key",
+			Command = "HP_AdminKey",
+			Label2 = "Team Selection Menu Key",
+			Command2 = "HP_TeamKey"
+		} )
+		panel:AddControl( "Numpad", {
+			Label = "Vehicle Reset Key",
+			Command = "HP_ResetKey"
+		} )
+	end )
+end )
+
 local function HPNotify( ply, text )
 	local textcolor1 = Color( 0, 0, 180, 255 )
 	local textcolor2 = color_white
@@ -117,6 +139,21 @@ local function OpenTeamMenu( ply )
 	ply.MenuOpen = true
 end
 
+local function OpenAdminMenu( ply )
+	local menu = vgui.Create( "DFrame" )
+	menu:SetTitle( "Admin Menu" )
+	menu:SetSize( ScrW() * 0.5, ScrH() * 0.5 )
+	menu:Center()
+	menu:MakePopup()
+	menu.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, MenuColor )
+	end
+	menu.OnClose = function()
+		ply.MenuOpen = false
+	end
+	ply.MenuOpen = true
+end
+
 net.Receive( "HP_SyncTimer", function( len, ply )
 	local getracetimer = net.ReadInt( 32 )
 	local getracename = net.ReadString()
@@ -168,20 +205,29 @@ hook.Add( "HUDPaint", "HP_MainHUD", function()
 end )
 
 hook.Add( "PlayerButtonDown", "HP_ChangeTeam", function( ply, button )
-	local f4 = KEY_F4
 	if !IsFirstTimePredicted() or ply.MenuOpen then return end
-	if button == f4 then
+	local teamkey = GetConVar( "HP_TeamKey" ):GetInt()
+	local adminkey = GetConVar( "HP_AdminKey" ):GetInt()
+	if button == teamkey then
 		if GetGlobalBool( "RaceStarted" ) then
 			HPNotify( ply, "You cannot change teams while in a race!" )
 			return
 		end
 		OpenTeamMenu( ply )
 	end
+	if button == adminkey then
+		if !ply:IsAdmin() then
+			local teamkeyname = language.GetPhrase( input.GetKeyName( teamkey ) )
+			HPNotify( ply, "Only admins can access this menu. If you are looking for the team selection menu, press "..teamkeyname.."." )
+			return
+		end
+		OpenAdminMenu( ply )
+	end
 end )
 
 hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
 	if IsFirstTimePredicted() and ply:InVehicle() then
-		if key == KEY_BACKSLASH then --Temporary until I make the keys bindable
+		if key == GetConVar( "HP_ResetKey" ):GetInt() then
 			if !GetGlobalBool( "RaceStarted" ) then
 				HPNotify( ply, "You can only reset your vehicle during a race." )
 				return
@@ -197,9 +243,10 @@ hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
 	end
 end )
 
+local color_green = Color( 0, 255, 0 )
 hook.Add( "PreDrawHalos", "HP_StartLineHalo", function()
 	if GetGlobalBool( "PreRace" ) then
-		halo.Add( ents.FindByClass( "hp_startline" ), Color( 0, 255, 0 ), 1, 1, 3, true, true )
+		halo.Add( ents.FindByClass( "hp_startline" ), color_green, 1, 1, 3, true, true )
 	end
 end )
 
