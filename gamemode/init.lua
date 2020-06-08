@@ -314,6 +314,7 @@ function StartRace( type, timelimit )
 	net.Broadcast()
 end
 
+util.AddNetworkString( "HP_SyncTimer" )
 function SyncTimer( ply, all )
 	if !HotPursuitMaps or !HotPursuitMaps[game.GetMap()] then return end
 	local name = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
@@ -331,9 +332,19 @@ function SyncTimer( ply, all )
 	end
 end
 
-util.AddNetworkString( "HP_SyncTimer" )
-hook.Add( "PlayerInitialSpawn", "HP_SyncTimer", function( ply )
+util.AddNetworkString( "HP_SendMapInfo" )
+local function SendMapInfo( ply )
+	if !HotPursuitMaps[game.GetMap()] then
+		ReadCurrentMap()
+	end
+	net.Start( "HP_SendMapInfo" )
+	net.WriteTable( HotPursuitMaps[game.GetMap()] )
+	net.Send( ply )
+end
+
+hook.Add( "PlayerSpawn", "HP_SyncTimer", function( ply )
 	SyncTimer( ply )
+	SendMapInfo( ply )
 end )
 
 util.AddNetworkString( "HP_RemoveClientTimer" )
@@ -382,7 +393,7 @@ function EndRace( forced, timed )
 	SetGlobalBool( "RaceStarted", false )
 
 	if forced then
-		HPNotifyAll( "The race was ended by a superadmin. Nobody wins." )
+		HPNotifyAll( "The race was ended by an admin. Nobody wins." )
 	end
 	if timed then
 		if GetGlobalInt( "TrackType" ) == 2 then
@@ -446,97 +457,77 @@ local function ResetVehicle( len, ply )
 end
 net.Receive( "ResetVehicle", ResetVehicle )
 
-hook.Add( "PlayerSay", "HP_StartRaceCommand", function( ply, text )
-	local split = string.Split( text, " " )
-	if split[1] == "!start" then
-		if !ply:IsSuperAdmin() then
-			HPNotify( ply, "Only superadmins can use this command!" )
-			return ""
-		end
-		if GetGlobalBool( "RaceStarted" ) then
-			HPNotify( ply, "A race has already started!" )
-			return ""
-		end
-		if !HotPursuitMaps[game.GetMap()] then
-			ReadCurrentMap()
-		end
-		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
-			HPNotify( ply, "The track layout you selected doesn't exist." )
-			return ""
-		end
-		if tobool( split[3] ) then
-			StartRace( tonumber( split[2] ), true )
-		else
-			StartRace( tonumber( split[2] ) )
-		end
-		return ""
+util.AddNetworkString( "HP_StartRace" )
+local function StartRaceCommand( len, ply )
+	local layout = net.ReadInt( 32 )
+	local timed = net.ReadBool()
+	if !ply:IsAdmin() then --Run these checks server side to avoid exploits
+		HPNotify( ply, "Only admins can start races!" )
+		return
 	end
-	if split[1] == "!end" then
-		if !ply:IsSuperAdmin() then
-			HPNotify( ply, "Only superadmins can use this command!" )
-			return ""
-		end
-		if !GetGlobalBool( "RaceStarted" ) then
-			HPNotify( ply, "There is no race to end!" )
-			return ""
-		end
-		EndRace( true )
-		return ""
+	if GetGlobalBool( "RaceStarted" ) then
+		HPNotify( ply, "A race has already started!" )
+		return
 	end
-	if split[1] == "!prestart" then
-		if !ply:IsSuperAdmin() then
-			HPNotify( ply, "Only superadmins can use this command!" )
-			return ""
-		end
-		if GetGlobalBool( "RaceStarted" ) then
-			HPNotify( ply, "A race has already started!" )
-			return ""
-		end
-		if !HotPursuitMaps[game.GetMap()] then
-			ReadCurrentMap()
-		end
-		if !HotPursuitMaps[game.GetMap()][tonumber( split[2] )] then
-			HPNotify( ply, "The track layout you selected doesn't exist." )
-			return ""
-		end
-		PreRace( tonumber( split[2] ) )
-		return ""
+	if !HotPursuitMaps[game.GetMap()] then
+		ReadCurrentMap()
 	end
-	if split[1] == "!tracktype" then
-		if !ply:IsSuperAdmin() then
-			HPNotify( ply, "Only superadmins can use this command!" )
-			return ""
-		end
+	StartRace( layout, timed )
+end
+net.Receive( "HP_StartRace", StartRaceCommand )
 
-		if !HP_CONFIG_TRACK_TYPES[tonumber( split[2] )] then
-			HPNotify( ply, "The track type you selected doesn't exist." )
-			return ""
-		end
-		SetGlobalBool( "TrackType", tonumber( split[2] ) )
-
-		local tracktype = HP_CONFIG_TRACK_TYPES[tonumber( split[2] )]
-		HPNotifyAll( "The track type has been changed to "..tracktype.Name..". "..tracktype.Description )
-		return ""
+util.AddNetworkString( "HP_EndRace" )
+local function EndRaceCommand( len, ply )
+	if !ply:IsAdmin() then
+		HPNotify( ply, "Only admins can end races!" )
 	end
-	if split[1] == "!racemode" then
-		if !ply:IsSuperAdmin() then
-			HPNotify( ply, "Only superadmins can use this command!" )
-			return ""
-		end
-		if !HotPursuitMaps[game.GetMap()] then
-			ReadCurrentMap()
-		end
-		if !HP_CONFIG_RACE_MODES[tonumber( split[2] )] then
-			HPNotify( ply, "The track type you selected doesn't exist." )
-			return ""
-		end
-		SetGlobalBool( "RaceMode", tonumber( split[2] ) )
-
-		local racemode = HP_CONFIG_RACE_MODES[tonumber( split[2] )]
-		HPNotifyAll( "The race mode has been changed to "..racemode.Name.."." )
-		return ""
+	if !GetGlobalBool( "RaceStarted" ) then
+		HPNotify( ply, "There is no race to end!" )
+		return
 	end
-end )
+	EndRace( true )
+end
+net.Receive( "HP_EndRace", EndRaceCommand )
+
+util.AddNetworkString( "HP_PreStartRace" )
+local function PreStartCommand( len, ply )
+	local layout = net.ReadInt( 32 )
+	if !ply:IsAdmin() then
+		HPNotify( ply, "Only admins can start the pre-race!" )
+		return
+	end
+	if GetGlobalBool( "RaceStarted" ) then
+		HPNotify( ply, "A race has already started!" )
+		return
+	end
+	PreRace( layout )
+end
+net.Receive( "HP_PreStartRace", PreStartCommand )
+
+util.AddNetworkString( "HP_SetTrackType" )
+local function TrackTypeCommand( len, ply )
+	local tracktype = net.ReadInt( 32 )
+	local typeinfo = HP_CONFIG_TRACK_TYPES[tracktype]
+	SetGlobalBool( "TrackType", tracktype )
+	HPNotifyAll( "The track type has been changed to "..typeinfo.Name..". "..typeinfo.Description )
+end
+net.Receive( "HP_SetTrackType" , TrackTypeCommand )
+
+util.AddNetworkString( "HP_SetRaceMode" )
+local function RaceModeCommand( len, ply )
+	local mode = net.ReadInt( 32 )
+	local modename = HP_CONFIG_RACE_MODES[mode]
+	if !ply:IsAdmin() then
+		HPNotify( ply, "Only admins can change the race mode!" )
+		return
+	end
+	if !HotPursuitMaps[game.GetMap()] then
+		ReadCurrentMap()
+	end
+	SetGlobalBool( "RaceMode", mode )
+	HPNotifyAll( "The race mode has been changed to "..modename.Name..". "..modename.Description )
+end
+net.Receive( "HP_SetRaceMode", RaceModeCommand )
 
 hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 and ply:Team() != TEAM_NONE.ID then

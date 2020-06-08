@@ -16,16 +16,8 @@ HP_CONFIG_MUSIC_LIST = { --List of music that the game will randomly play when a
 	"hotpursuit/track8.mp3"
 }
 
-HP_CONFIG_MUSIC_VOLUME = 0.5 --Volume percentage of the music as a decimal, 0.5 is 50% and 1 is 100%
-
 HP_CONFIG_BLACKLIST = { --Blacklisted vehicle models that players can't spawn
 	--["models/vehicles/example.mdl"] = true --Example restriction
-}
-
-HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to spawn
-	["prop_vehicle_jeep"] = true,
-	["prop_vehicle_airboat"] = true,
-	["gmod_sent_vehicle_fphysics_wheel"] = true, --Simfphys support
 }
 
 HP_CONFIG_PISTOLS = { --Pistols to randomly pick from on the hardcore mode
@@ -45,6 +37,12 @@ HP_CONFIG_MINE_MAGNITUDE = 50 --Magnitude of the mines, includes both damage and
 
 --Advanced config, don't touch anything here unless you know what you're doing.
 --Changing values here won't do much unless you change the core code to reflect your changes here.
+HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to race with
+	["prop_vehicle_jeep"] = true,
+	["prop_vehicle_airboat"] = true,
+	["gmod_sent_vehicle_fphysics_wheel"] = true, --Simfphys support
+}
+
 HP_CONFIG_TRACK_TYPES = { --Allows admins to change whether racers are confined to a track or not
 	[1] = {
 		Name = "Standard",

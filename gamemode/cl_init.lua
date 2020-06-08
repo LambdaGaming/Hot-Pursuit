@@ -10,6 +10,7 @@ local RaceTimer = 0
 CreateClientConVar( "HP_AdminKey", KEY_F3, true, false, "Sets the key for the admin menu." )
 CreateClientConVar( "HP_TeamKey", KEY_F4, true, false, "Sets the key for the team selection menu." )
 CreateClientConVar( "HP_ResetKey", KEY_BACKSLASH, true, false, "Sets the key for vehicle reset." )
+CreateClientConVar( "HP_MusicVolume", 0.5, true, false, "Sets the volume for the race music." )
 
 hook.Add( "PopulateToolMenu", "HP_KeyMenu", function()
 	spawnmenu.AddToolMenuOption( "Options", "Hot Pursuit", "HPKeys", "Controls", "", "", function( panel )
@@ -26,17 +27,18 @@ hook.Add( "PopulateToolMenu", "HP_KeyMenu", function()
 			Label = "Vehicle Reset Key",
 			Command = "HP_ResetKey"
 		} )
+		panel:NumSlider( "Music Volume", "HP_MusicVolume", 0, 1, 1 )
 	end )
 end )
 
-local function HPNotify( ply, text )
+local function HPNotify( text )
 	local textcolor1 = Color( 0, 0, 180, 255 )
 	local textcolor2 = color_white
 	chat.AddText( textcolor1, "[Hot Pursuit]: ", textcolor2, text )
 end
-net.Receive( "HPNotify", function( len, ply )
+net.Receive( "HPNotify", function()
 	local text = net.ReadString()
-	HPNotify( ply, text )
+	HPNotify( text )
 end )
 
 local function HPNotifyAll( text )
@@ -58,7 +60,7 @@ net.Receive( "HPPlayMusic", function( len, ply )
 	local randtrack = net.ReadString()
 	sound.PlayFile( "sound/"..randtrack, "", function( station )
 		if !IsValid( station ) then return end
-		station:SetVolume( HP_CONFIG_MUSIC_VOLUME )
+		station:SetVolume( GetConVar( "HP_MusicVolume" ):GetFloat() )
 	end )
 end )
 
@@ -92,7 +94,7 @@ local function OpenTeamMenu( ply )
 		net.WriteInt( TEAM_RACER.ID, 32 )
 		net.SendToServer()
 		menu:Close()
-		HPNotify( ply, "You have changed your team to Racer." )
+		HPNotify( "You have changed your team to Racer." )
 	end
 
 	local policebutton = vgui.Create( "DButton", menu )
@@ -113,7 +115,7 @@ local function OpenTeamMenu( ply )
 		net.WriteInt( TEAM_POLICE.ID, 32 )
 		net.SendToServer()
 		menu:Close()
-		HPNotify( ply, "You have changed your team to Police." )
+		HPNotify( "You have changed your team to Police." )
 	end
 
 	local specbutton = vgui.Create( "DButton", menu )
@@ -134,15 +136,15 @@ local function OpenTeamMenu( ply )
 		net.WriteInt( TEAM_NONE.ID, 32 )
 		net.SendToServer()
 		menu:Close()
-		HPNotify( ply, "You have changed your team to Spectator." )
+		HPNotify( "You have changed your team to Spectator." )
 	end
 	ply.MenuOpen = true
 end
 
 local function OpenAdminMenu( ply )
 	local menu = vgui.Create( "DFrame" )
-	menu:SetTitle( "Admin Menu" )
-	menu:SetSize( ScrW() * 0.5, ScrH() * 0.5 )
+	menu:SetTitle( "Hot Pursuit: Admin Menu" )
+	menu:SetSize( ScrW() * 0.15, ScrH() * 0.3 )
 	menu:Center()
 	menu:MakePopup()
 	menu.Paint = function( self, w, h )
@@ -151,20 +153,139 @@ local function OpenAdminMenu( ply )
 	menu.OnClose = function()
 		ply.MenuOpen = false
 	end
+
+	local tracktypelabel = vgui.Create( "DLabel", menu )
+	tracktypelabel:CenterHorizontal()
+	tracktypelabel:SetPos( nil, 30 )
+	tracktypelabel:SetText( "Select Track Type" )
+	tracktypelabel:SizeToContents()
+
+	local mwidth, mheight = menu:GetSize()
+	local tracktypes = vgui.Create( "DComboBox", menu )
+	tracktypes:CenterHorizontal()
+	tracktypes:SetPos( nil, 45 )
+	tracktypes:SetSize( 150, 20 )
+	tracktypes:SetValue( HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name )
+	for k,v in pairs( HP_CONFIG_TRACK_TYPES ) do
+		tracktypes:AddChoice( v.Name, k )
+	end
+	tracktypes.OnSelect = function( self, index, value )
+		net.Start( "HP_SetTrackType" )
+		net.WriteInt( index, 32 )
+		net.SendToServer()
+	end
+
+	local racemodeslabel = vgui.Create( "DLabel", menu )
+	racemodeslabel:CenterHorizontal()
+	racemodeslabel:SetPos( nil, 95 )
+	racemodeslabel:SetText( "Select Race Mode" )
+	racemodeslabel:SizeToContents()
+
+	local racemodes = vgui.Create( "DComboBox", menu )
+	racemodes:CenterHorizontal()
+	racemodes:SetPos( nil, 110 )
+	racemodes:SetSize( 150, 20 )
+	racemodes:SetValue( HP_CONFIG_RACE_MODES[GetGlobalInt( "RaceMode" )].Name )
+	for k,v in pairs( HP_CONFIG_RACE_MODES ) do
+		racemodes:AddChoice( v.Name, k )
+	end
+	racemodes.OnSelect = function( self, index, value )
+		local fix
+		if index == 1 then --For some reason the indexes get offset by 1 when selected
+			fix = 4
+		else
+			fix = index - 1
+		end
+		net.Start( "HP_SetRaceMode" )
+		net.WriteInt( fix, 32 )
+		net.SendToServer()
+	end
+
+	local tracklayoutlabel = vgui.Create( "DLabel", menu )
+	tracklayoutlabel:CenterHorizontal()
+	tracklayoutlabel:SetPos( nil, 160 )
+	tracklayoutlabel:SetText( "Select Track Layout" )
+	tracklayoutlabel:SizeToContents()
+
+	local tracklayouts = vgui.Create( "DComboBox", menu )
+	tracklayouts:CenterHorizontal()
+	tracklayouts:SetPos( nil, 175 )
+	tracklayouts:SetSize( 150, 20 )
+	tracklayouts:SetValue( HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name )
+	for k,v in pairs( HotPursuitMaps[game.GetMap()] ) do
+		tracklayouts:AddChoice( v.Name, k )
+	end
+
+	local timercheck = vgui.Create( "DCheckBoxLabel", menu )
+	timercheck:CenterHorizontal()
+	timercheck:SetPos( nil, 225 )
+	timercheck:SetText( "Enable Timer" )
+	timercheck:SizeToContents()
+
+	local startbutton = vgui.Create( "DButton", menu )
+	startbutton:SetText( "Start Pre-Race" )
+	startbutton:SetTextColor( color_white )
+	startbutton:SetPos( 0, mheight - 30 )
+	startbutton:SetSize( mwidth / 3, 30 )
+	startbutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	startbutton.DoClick = function()
+		local value, data = tracklayouts:GetSelected()
+		if !value or !data then data = GetGlobalInt( "TrackLayout" ) end
+		net.Start( "HP_PreStartRace" )
+		net.WriteInt( data, 32 )
+		net.SendToServer()
+		menu:Close()
+	end
+
+	local startbutton = vgui.Create( "DButton", menu )
+	startbutton:SetText( "Start Race" )
+	startbutton:SetTextColor( color_white )
+	startbutton:SetPos( mwidth - 100, mheight - 30 )
+	startbutton:SetSize( mwidth / 3, 30 )
+	startbutton:CenterHorizontal()
+	startbutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	startbutton.DoClick = function()
+		local value, data = tracklayouts:GetSelected()
+		if !value or !data then data = GetGlobalInt( "TrackLayout" ) end
+		net.Start( "HP_StartRace" )
+		net.WriteInt( data, 32 )
+		net.WriteBool( timercheck:GetChecked() )
+		net.SendToServer()
+		menu:Close()
+	end
+
+	local endbutton = vgui.Create( "DButton", menu )
+	endbutton:SetText( "End Race" )
+	endbutton:SetTextColor( color_white )
+	endbutton:SetPos( mwidth - ( mwidth / 3 ), mheight - 30 )
+	endbutton:SetSize( mwidth / 3, 30 )
+	endbutton.Paint = function( self, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
+	end
+	endbutton.DoClick = function()
+		net.Start( "HP_EndRace" )
+		net.SendToServer()
+		menu:Close()
+	end
 	ply.MenuOpen = true
 end
 
-net.Receive( "HP_SyncTimer", function( len, ply )
+net.Receive( "HP_SyncTimer", function()
 	local getracetimer = net.ReadInt( 32 )
-	local getracename = net.ReadString()
 	RaceTimer = getracetimer + CurTime()
-	HotPursuitMaps[game.GetMap()] = {} --Looks kinda sloppy but its more efficient than networking the whole table over since the client only needs this one piece of info
-	HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )] = {}
-	HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name = getracename
 end )
 
 net.Receive( "HP_RemoveClientTimer", function()
 	RaceTimer = 0
+end )
+
+net.Receive( "HP_SendMapInfo", function()
+	local info = net.ReadTable()
+	HotPursuitMaps[game.GetMap()] = info
 end )
 
 surface.CreateFont( "HPTimer", {
