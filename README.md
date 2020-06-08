@@ -1,16 +1,19 @@
 # Hot Pursuit
- WIP racing gamemode for Garry's Mod. Inspired by EA's Need For Speed: Hot Pursuit 2.
+ Racing gamemode for Garry's Mod. Inspired by EA's Need For Speed: Hot Pursuit 2.
 
 ## Current Features:
 - Race with or without police. Players can choose their team by pressing F4.
 - The goal of the police is to eliminate racers by wrecking their cars before they can cross the finish line.
 - Players who don't choose a team will be spectators. Teams cannot be changed during a race.
-- Admins can either choose to run the race as a closed course or in free-roam mode. The free-roam mode removes all barriers and allows racers to go wherever they want on the map. The timer that is normally optional is required in free-roam as the finish line is removed.
+- Optional race timer that admins can toggle before starting a race. When the timer ends, the winners will be determined based on who all crossed the finish line.
+- Admins can either choose to run the race as a closed course, a reversed closed course, or in free-roam mode. The free-roam mode removes all barriers and allows racers to go wherever they want on the map. The timer that is normally optional is required in free-roam as the finish line is removed.
+- Different race modes that allow players to use weapons and tools to slow down or stop their opponents.
+- Support for more than one track layout for each map.
 - Music support. Music starts playing as soon as the race countdown starts. Server developers can add or remove tracks through the config.
-- Support for both Automod, my own (currently unreleased) vehicle system, as well as VCMod.
+- Support for both Automod, my own (currently unreleased) vehicle system, as well as vehicles runnning on Simfphy's Lua Vehicles base.
  
 ## Map Support:
-Eventually I hope to have at least 2 track layouts for every popular map on the workshop. For now though, I compiled a list of maps I plan on supporting, a list of maps that are currently supported, and a list of maps that I won't be supporting. You can find these lists in the [maps.md file](https://github.com/LambdaGaming/Hot-Pursuit/blob/master/maps.md) of this repository.
+Eventually I hope to have at least 2 track layouts for every popular map on the workshop that meets the requirements listed below. For now though, I compiled a list of maps I plan on supporting, a list of maps that are currently supported, and a list of maps that I won't be supporting. You can find these lists in the [maps.md file](https://github.com/LambdaGaming/Hot-Pursuit/blob/master/maps.md) of this repository.
   
 I'll take map suggestions but I'll only add full support to maps that meet the following requirements:
 - Map must have at least 1 road. A road qualifies as a brush textured with a dirt, gravel, concrete, asphalt, brick, or ice material or overlay that is completely free of any obstructions.
