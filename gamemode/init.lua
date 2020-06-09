@@ -624,9 +624,12 @@ end )
 
 hook.Add( "InitPostEntity", "HP_InitPostEntity", function()
 	if simfphys then
-		RunConsoleCommand( "sv_simfphys_enabledamage", 1 )
 		RunConsoleCommand( "sv_simfphys_damagemultiplicator", 1.5 )
 		RunConsoleCommand( "sv_simfphys_fuel", 0 )
+	end
+	if AM_Vehicles then
+		RunConsoleCommand( "AM_Config_HealthOverride", 100 )
+		RunConsoleCommand( "AM_Config_FuelEnabled", 0 )
 	end
 
 	local version
