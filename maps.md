@@ -12,7 +12,6 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - [gm_balkans](https://steamcommunity.com/sharedfiles/filedetails/?id=1307357127)
 
 # Planned Support (Full):
-- gm_bigisland
 - gm_bluehills_test3
 - gm_flatgrass_abs_v3c
 - gm_fork
@@ -27,11 +26,11 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - rp_unioncity_day
 - gm_goldencity*
 - gm_york
-- gm_echocity_circuit_v1
 - rp_southside
 - rp_unioncity
 
 # Planned Support (Free Roam Only):
+- gm_bigisland
 - fightspace3b
 - gm_boreas
 - gm_construct
@@ -49,10 +48,10 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - gm_tornado*
 - gm_warmap_v5
 - gm_atomic
-- rp_c24_v1
-- rp_city24_v2
 - rp_ineu_valley2_v1a
 - gm_countrysideroad
+- gm_wuhu
+- gm_echocity_circuit_v1
 
 # Not Supported:
 Note: These maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
