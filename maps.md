@@ -6,13 +6,12 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - [rp_florida_v2](https://steamcommunity.com/workshop/filedetails/?id=1526892946)
 - [rp_truenorth_v1a](https://steamcommunity.com/sharedfiles/filedetails/?id=1601428630)
 - [rp_newexton2_v4h](https://steamcommunity.com/sharedfiles/filedetails/?id=1318768443)
+- [gm_bigcity](https://steamcommunity.com/sharedfiles/filedetails/?id=105982362)
 
 # Currently Supported Maps (Free Roam Only):
-- None
+- [gm_balkans](https://steamcommunity.com/sharedfiles/filedetails/?id=1307357127)
 
 # Planned Support (Full):
-- gm_balkins
-- gm_bigcity
 - gm_bigisland
 - gm_bluehills_test3
 - gm_flatgrass_abs_v3c

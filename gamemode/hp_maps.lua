@@ -54,22 +54,27 @@ HotPursuitMaps["fightspace3b"] = { --Example of a free roam only map
 --Functions to read/write map info in the file system, don't touch
 if SERVER then
 	local color_blue = Color( 0, 0, 255 )
-	function ReadCurrentMap()
+	local function PrintToConsole( text, suppress )
+		if suppress then return end
+		MsgC( color_blue, text )
+	end
+
+	function ReadCurrentMap( suppress )
 		if !HotPursuitMaps then
-			MsgC( color_blue, "\nError: It seems like the main map table doesn't exist. The gamemode will not work without it. Did you mess with something you weren't supposed to?\n" )
+			PrintToConsole( "\nError: It seems like the main map table doesn't exist. The gamemode will not work without it. Did you mess with something you weren't supposed to?\n", suppress )
 			return
 		end
 		local map = game.GetMap()
 		if !HotPursuitMaps[map] then
-			MsgC( color_blue, "\nInfo for this map not found. Attempting to load from file...\n" )
+			PrintToConsole( "\nInfo for this map not found. Attempting to load from file...\n", suppress )
 			local infoextra = file.Read( "hotpursuit/maps/"..map..'.json', "DATA" )
 			local info = file.Read( "gamemodes/hotpursuit/content/data/hotpursuit/maps/"..map..".json", "GAME" )
 			local filefoundinmaindir = false
 			local convert
 			if info == nil then
-				MsgC( color_blue, "\nMap info not found in gamemode directory. Checking main data directory.\n" )
+				PrintToConsole( "\nMap info not found in gamemode directory. Checking main data directory.\n", suppress )
 				if infoextra == nil then
-					MsgC( color_blue, "\nError: Could not find info for this map. This map may be unsupported.\n" )
+					PrintToConsole( "\nError: Could not find info for this map. This map may be unsupported.\n", suppress )
 					return
 				end
 			else
@@ -81,10 +86,10 @@ if SERVER then
 				convert = util.JSONToTable( infoextra )
 			end
 			HotPursuitMaps[map] = convert
-			MsgC( color_blue, "\nSuccessfully loaded map info from file.\n" )
+			PrintToConsole( "\nSuccessfully loaded map info from file.\n", suppress )
 			return
 		end
-		MsgC( color_blue, "\nInfo for this map already exists in memory. No action taken.\n" )
+		PrintToConsole( "\nInfo for this map already exists in memory. No action taken.\n", suppress )
 	end
 	hook.Add( "InitPostEntity", "HP_LoadMapInfo", ReadCurrentMap )
 

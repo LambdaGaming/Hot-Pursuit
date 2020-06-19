@@ -33,13 +33,16 @@ function ENT:Initialize()
 		end
 		self:SetUseType( SIMPLE_USE )
 
-		local e = ents.Create( "prop_dynamic" )
-		e:SetModel( "models/hunter/triangles/075x075mirrored.mdl" )
-		e:SetMaterial( "models/weapons/v_slam/new light2" )
-		e:SetPos( self:GetPos() + Vector( 0, 0, 0.5 ) )
-		e:SetAngles( self:GetAngles() )
-		e:SetParent( self )
-		e:Spawn()
+		local mapconfig = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )]
+		if GetGlobalBool( "TrackType" ) != 2 and !mapconfig.FreeRoamOnly then
+			local e = ents.Create( "prop_dynamic" )
+			e:SetModel( "models/hunter/triangles/075x075mirrored.mdl" )
+			e:SetMaterial( "models/weapons/v_slam/new light2" )
+			e:SetPos( self:GetPos() + Vector( 0, 0, 0.5 ) )
+			e:SetAngles( self:GetAngles() )
+			e:SetParent( self )
+			e:Spawn()
+		end
 	end
 end
 

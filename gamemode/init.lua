@@ -284,29 +284,31 @@ function StartRace( type, timelimit )
 		end
 	end
 
-	if GetGlobalInt( "TrackType" ) == 1 then
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.FinishPos.Pos )
-		e:SetAngles( mapconfig.FinishPos.Ang )
-		e:Spawn()
-
-		for k,v in ipairs( mapconfig.BlockSpawns ) do
-			local e = ents.Create( "hp_barrier" )
-			e:SetPos( v[1] )
-			e:SetAngles( v[2] )
+	if mapconfig.FinishPos then --Failsafe incase freeroam isn't selected on a freeroam-only map
+		if GetGlobalInt( "TrackType" ) == 1 then
+			local e = ents.Create( "hp_finishline" )
+			e:SetPos( mapconfig.FinishPos.Pos )
+			e:SetAngles( mapconfig.FinishPos.Ang )
 			e:Spawn()
-		end
-	elseif GetGlobalInt( "TrackType" ) == 3 then
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.StartPos.Pos )
-		e:SetAngles(mapconfig.StartPos.Ang )
-		e:Spawn()
 
-		for k,v in ipairs( mapconfig.BlockSpawns ) do
-			local e = ents.Create( "hp_barrier" )
-			e:SetPos( v[1] )
-			e:SetAngles( v[2] )
+			for k,v in ipairs( mapconfig.BlockSpawns ) do
+				local e = ents.Create( "hp_barrier" )
+				e:SetPos( v[1] )
+				e:SetAngles( v[2] )
+				e:Spawn()
+			end
+		elseif GetGlobalInt( "TrackType" ) == 3 then
+			local e = ents.Create( "hp_finishline" )
+			e:SetPos( mapconfig.StartPos.Pos )
+			e:SetAngles( mapconfig.StartPos.Ang )
 			e:Spawn()
+
+			for k,v in ipairs( mapconfig.BlockSpawns ) do
+				local e = ents.Create( "hp_barrier" )
+				e:SetPos( v[1] )
+				e:SetAngles( v[2] )
+				e:Spawn()
+			end
 		end
 	end
 	net.Start( "HPPlayMusic" )
@@ -334,9 +336,8 @@ end
 
 util.AddNetworkString( "HP_SendMapInfo" )
 local function SendMapInfo( ply )
-	if !HotPursuitMaps[game.GetMap()] then
-		ReadCurrentMap()
-	end
+	if !HotPursuitMaps[game.GetMap()] then ReadCurrentMap( true ) end --Check to see if the map info can be read from file
+	if !HotPursuitMaps[game.GetMap()] then return end --Check again for the map info and if it doesn't exist, don't send the message
 	net.Start( "HP_SendMapInfo" )
 	net.WriteTable( HotPursuitMaps[game.GetMap()] )
 	net.Send( ply )
