@@ -6,6 +6,7 @@ include( "hp_maps.lua" )
 local MenuColor = Color( 49, 53, 61, 200 )
 local ButtonColor = Color( 230, 93, 80, 255 )
 local RaceTimer = 0
+local map = game.GetMap()
 
 CreateClientConVar( "HP_AdminKey", KEY_F3, true, false, "Sets the key for the admin menu." )
 CreateClientConVar( "HP_TeamKey", KEY_F4, true, false, "Sets the key for the team selection menu." )
@@ -160,18 +161,32 @@ local function OpenAdminMenu( ply )
 	tracktypelabel:SetText( "Select Track Type" )
 	tracktypelabel:SizeToContents()
 
+	local typename
+	if HotPursuitMaps[map] then
+		typename = HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name
+	else
+		typename = "Free Roam"
+	end
 	local mwidth, mheight = menu:GetSize()
 	local tracktypes = vgui.Create( "DComboBox", menu )
 	tracktypes:CenterHorizontal()
 	tracktypes:SetPos( nil, 45 )
 	tracktypes:SetSize( 150, 20 )
-	tracktypes:SetValue( HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name )
-	for k,v in pairs( HP_CONFIG_TRACK_TYPES ) do
-		tracktypes:AddChoice( v.Name, k )
+	tracktypes:SetValue( typename )
+	if HotPursuitMaps[map] then
+		for k,v in pairs( HP_CONFIG_TRACK_TYPES ) do
+			tracktypes:AddChoice( v.Name, k )
+		end
+	else
+		tracktypes:AddChoice( "Free Roam", 2 )
 	end
 	tracktypes.OnSelect = function( self, index, value )
 		net.Start( "HP_SetTrackType" )
-		net.WriteInt( index, 32 )
+		if value == "Free Roam" then
+			net.WriteInt( 2, 32 )
+		else
+			net.WriteInt( index, 32 )
+		end
 		net.SendToServer()
 	end
 
@@ -207,13 +222,23 @@ local function OpenAdminMenu( ply )
 	tracklayoutlabel:SetText( "Select Track Layout" )
 	tracklayoutlabel:SizeToContents()
 
+	local layoutname
+	if !HotPursuitMaps[map] then
+		layoutname = "Free Roam"
+	else
+		layoutname = HotPursuitMaps[map][GetGlobalInt( "TrackLayout" )].Name
+	end
 	local tracklayouts = vgui.Create( "DComboBox", menu )
 	tracklayouts:CenterHorizontal()
 	tracklayouts:SetPos( nil, 175 )
 	tracklayouts:SetSize( 150, 20 )
-	tracklayouts:SetValue( HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name )
-	for k,v in pairs( HotPursuitMaps[game.GetMap()] ) do
-		tracklayouts:AddChoice( v.Name, k )
+	tracklayouts:SetValue( layoutname )
+	if HotPursuitMaps[map] then
+		for k,v in pairs( HotPursuitMaps[map] ) do
+			tracklayouts:AddChoice( v.Name, k )
+		end
+	else
+		tracklayouts:AddChoice( layoutname, -1 )
 	end
 
 	local timercheck = vgui.Create( "DCheckBoxLabel", menu )
@@ -231,6 +256,10 @@ local function OpenAdminMenu( ply )
 		draw.RoundedBox( 0, 0, 0, w, h, ButtonColor )
 	end
 	startbutton.DoClick = function()
+		if !HotPursuitMaps[map] then
+			HPNotify( "This map is unsupported. Only free roam is available." )
+			return
+		end
 		local value, data = tracklayouts:GetSelected()
 		if !value or !data then data = GetGlobalInt( "TrackLayout" ) end
 		net.Start( "HP_PreStartRace" )
@@ -285,7 +314,7 @@ end )
 
 net.Receive( "HP_SendMapInfo", function()
 	local info = net.ReadTable()
-	HotPursuitMaps[game.GetMap()] = info
+	HotPursuitMaps[map] = info
 end )
 
 surface.CreateFont( "HPTimer", {
@@ -308,8 +337,15 @@ end
 hook.Add( "HUDPaint", "HP_MainHUD", function()
 	if GetGlobalBool( "RaceStarted" ) then
 		local RaceMode = HP_CONFIG_RACE_MODES[GetGlobalInt( "RaceMode" )].Name
-		local TrackType = HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name
-		local TrackLayout = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
+		local TrackType
+		local TrackLayout
+		if HotPursuitMaps[map] and GetGlobalInt( "TrackType" ) != 2 then 
+			TrackType = HP_CONFIG_TRACK_TYPES[GetGlobalInt( "TrackType" )].Name
+			TrackLayout = HotPursuitMaps[map][GetGlobalInt( "TrackLayout" )].Name
+		else
+			TrackType = "Free Roam"
+			TrackLayout = "None"
+		end
 		local ply = LocalPlayer()
 
 		draw.RoundedBoxEx( 14, 0, 0, ScrW(), 40, MenuColor, false, false, true, true )

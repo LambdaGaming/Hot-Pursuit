@@ -1,0 +1,20 @@
+[
+	{
+		"Description": "Runs through the underground dirt track starting at the tunnel closest to spawn.",
+		"FinishPos": {
+			"Ang": "{0 90 0}",
+			"Pos": "[-9829 11780 48]"
+		},
+		"Name": "Dirt Track",
+		"StartPos": {
+			"Ang": "{0 0 0}",
+			"Pos": "[8655 -11866 48]"
+		},
+		"BlockSpawns": [
+			[
+				"[2802 -3075 -1087]",
+				"{0 0 0}"
+			]
+		]
+	}
+]

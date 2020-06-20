@@ -156,6 +156,7 @@ function HPPlaySound( ply, sound, broadcast )
 end
 
 function PreRace( type )
+	if !HotPursuitMaps[game.GetMap()] then return end
 	SetGlobalBool( "PreRace", true )
 	local mapconfig = HotPursuitMaps[game.GetMap()][type]
 	if GetGlobalInt( "TrackType" ) == 3 then
@@ -175,7 +176,8 @@ end
 
 util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
-	local mapconfig = HotPursuitMaps[game.GetMap()][type]
+	local maptable = HotPursuitMaps[game.GetMap()] or {}
+	local mapconfig = maptable[type] or {}
 	local racemode = GetGlobalInt( "RaceMode" )
 	for k,v in pairs( player.GetAll() ) do
 		if v:Team() != TEAM_NONE.ID and !v:InVehicle() then
@@ -252,16 +254,18 @@ function StartRace( type, timelimit )
 				end
 			end
 			SetGlobalBool( "RaceCountdown", false )
-			if timelimit or GetGlobalBool( "TrackType" ) == 2 or mapconfig.FreeRoamOnly then
+			if timelimit or GetGlobalBool( "TrackType" ) == 2 then
 				timer.Create( "RaceTimer", HP_CONFIG_RACE_TIMER, 1, function() EndRace( false, true ) end )
 			end
-			timer.Create( "DisqualifyTimer", 15, 1, function()
-				for k,v in pairs( player.GetAll() ) do
-					if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
-						Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
+			if GetGlobalBool( "TrackType" ) != 2 then
+				timer.Create( "DisqualifyTimer", 15, 1, function()
+					for k,v in pairs( player.GetAll() ) do
+						if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
+							Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
+						end
 					end
-				end
-			end )
+				end )
+			end
 			SetGlobalBool( "PreRace", false )
 			SetGlobalBool( "RaceStarted", true )
 			SyncTimer( nil, true )
@@ -276,7 +280,7 @@ function StartRace( type, timelimit )
 			e:SetPos( mapconfig.FinishPos.Pos )
 			e:SetAngles( mapconfig.FinishPos.Ang )
 			e:Spawn()
-		else
+		elseif GetGlobalInt( "TrackType" ) == 1 then
 			local e = ents.Create( "hp_startline" )
 			e:SetPos( mapconfig.StartPos.Pos )
 			e:SetAngles( mapconfig.StartPos.Ang )
@@ -284,31 +288,29 @@ function StartRace( type, timelimit )
 		end
 	end
 
-	if mapconfig.FinishPos then --Failsafe incase freeroam isn't selected on a freeroam-only map
-		if GetGlobalInt( "TrackType" ) == 1 then
-			local e = ents.Create( "hp_finishline" )
-			e:SetPos( mapconfig.FinishPos.Pos )
-			e:SetAngles( mapconfig.FinishPos.Ang )
-			e:Spawn()
+	if GetGlobalInt( "TrackType" ) == 1 then
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.FinishPos.Pos )
+		e:SetAngles( mapconfig.FinishPos.Ang )
+		e:Spawn()
 
-			for k,v in ipairs( mapconfig.BlockSpawns ) do
-				local e = ents.Create( "hp_barrier" )
-				e:SetPos( v[1] )
-				e:SetAngles( v[2] )
-				e:Spawn()
-			end
-		elseif GetGlobalInt( "TrackType" ) == 3 then
-			local e = ents.Create( "hp_finishline" )
-			e:SetPos( mapconfig.StartPos.Pos )
-			e:SetAngles( mapconfig.StartPos.Ang )
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
 			e:Spawn()
+		end
+	elseif GetGlobalInt( "TrackType" ) == 3 then
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.StartPos.Pos )
+		e:SetAngles( mapconfig.StartPos.Ang )
+		e:Spawn()
 
-			for k,v in ipairs( mapconfig.BlockSpawns ) do
-				local e = ents.Create( "hp_barrier" )
-				e:SetPos( v[1] )
-				e:SetAngles( v[2] )
-				e:Spawn()
-			end
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
+			e:Spawn()
 		end
 	end
 	net.Start( "HPPlayMusic" )

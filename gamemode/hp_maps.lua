@@ -37,20 +37,6 @@ HotPursuitMaps["rp_rockford_v2b"] = { --Example of a full feature map
 }
 ]]
 
---[[
-HotPursuitMaps["fightspace3b"] = { --Example of a free roam only map
-	[1] = {
-		Name = "Standard Free Roam",
-		Description = "Standard track, free roam only.",
-		FreeRoamOnly = true, --Whether the map only supports the free roam track type or not (this will usually be applied to open maps where a reasonable amount of barriers wouldn't be enough to prevent track cutting)
-		StartPos = {
-			Pos = vector_origin,
-			Ang = angle_zero
-		}
-	}
-}
-]]
-
 --Functions to read/write map info in the file system, don't touch
 if SERVER then
 	local color_blue = Color( 0, 0, 255 )
@@ -74,7 +60,7 @@ if SERVER then
 			if info == nil then
 				PrintToConsole( "\nMap info not found in gamemode directory. Checking main data directory.\n", suppress )
 				if infoextra == nil then
-					PrintToConsole( "\nError: Could not find info for this map. This map may be unsupported.\n", suppress )
+					PrintToConsole( "\nError: This map is unsupported. Only free roam mode will be available.\n", suppress )
 					return
 				end
 			else
@@ -97,7 +83,7 @@ if SERVER then
 		for k,v in pairs( HotPursuitMaps ) do
 			if !file.Exists( "hotpursuit/maps", "DATA" ) then file.CreateDir( "hotpursuit/maps" ) end
 			file.Write( "hotpursuit/maps/"..k..".json", util.TableToJSON( v, true ) )
-			MsgC( color_blue, "\nMap info successfully written to file. You can safely delete the Lua tables in hp_maps.lua.\n" )
+			MsgC( color_blue, "\nMap info for "..k.." successfully written to file. You can safely delete it's Lua table in hp_maps.lua.\n" )
 		end
 	end
 	concommand.Add( "hp_writemaps", WriteMapsToFile )

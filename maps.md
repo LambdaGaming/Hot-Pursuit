@@ -1,18 +1,15 @@
 Note: An asterisk (*) at the end of a name indicates that all maps of that type are supported/unsupported. Use Ctrl + F to search for a map before suggesting it.
 
-# Currently Supported Maps (Full):
+# Currently Supported Maps:
 - [rp_rockford_v2b](https://steamcommunity.com/sharedfiles/filedetails/?id=622810630)
 - [rp_evocity2_v5p](https://steamcommunity.com/sharedfiles/filedetails/?id=538207599)
 - [rp_florida_v2](https://steamcommunity.com/workshop/filedetails/?id=1526892946)
 - [rp_truenorth_v1a](https://steamcommunity.com/sharedfiles/filedetails/?id=1601428630)
 - [rp_newexton2_v4h](https://steamcommunity.com/sharedfiles/filedetails/?id=1318768443)
 - [gm_bigcity](https://steamcommunity.com/sharedfiles/filedetails/?id=105982362)
+- [gm_bluehills_test3](https://steamcommunity.com/sharedfiles/filedetails/?id=243902601)
 
-# Currently Supported Maps (Free Roam Only):
-- [gm_balkans](https://steamcommunity.com/sharedfiles/filedetails/?id=1307357127)
-
-# Planned Support (Full):
-- gm_bluehills_test3
+# Planned Support:
 - gm_flatgrass_abs_v3c
 - gm_fork
 - gm_functional_flatgrass3
@@ -28,30 +25,6 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - gm_york
 - rp_southside
 - rp_unioncity
-
-# Planned Support (Free Roam Only):
-- gm_bigisland
-- fightspace3b
-- gm_boreas
-- gm_construct
-- gm_flatgrass
-- gm_botmap_v3
-- gm_construct_flatgrass_v6-2
-- gm_drivingmap_workshop
-- gm_dddustbowl2
-- gm_freespace_09_extended
-- gm_highway14800
-- gm_lunarbase
-- gm_mountainlake2
-- gm_range_f4
-- gm_secretconstruct_v3
-- gm_tornado*
-- gm_warmap_v5
-- gm_atomic
-- rp_ineu_valley2_v1a
-- gm_countrysideroad
-- gm_wuhu
-- gm_echocity_circuit_v1
 
 # Not Supported:
 Note: These maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
