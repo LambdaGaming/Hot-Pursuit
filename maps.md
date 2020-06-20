@@ -8,10 +8,10 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - [rp_newexton2_v4h](https://steamcommunity.com/sharedfiles/filedetails/?id=1318768443)
 - [gm_bigcity](https://steamcommunity.com/sharedfiles/filedetails/?id=105982362)
 - [gm_bluehills_test3](https://steamcommunity.com/sharedfiles/filedetails/?id=243902601)
+- [gm_flatgrass_abs_v3c](https://steamcommunity.com/sharedfiles/filedetails/?id=213888400)
+- [gm_fork](https://steamcommunity.com/sharedfiles/filedetails/?id=326332456)
 
 # Planned Support:
-- gm_flatgrass_abs_v3c
-- gm_fork
 - gm_functional_flatgrass3
 - gm_genesis
 - gm_mobenix_v3_final
