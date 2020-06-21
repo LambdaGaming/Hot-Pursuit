@@ -10,21 +10,18 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 - [gm_bluehills_test3](https://steamcommunity.com/sharedfiles/filedetails/?id=243902601)
 - [gm_flatgrass_abs_v3c](https://steamcommunity.com/sharedfiles/filedetails/?id=213888400)
 - [gm_fork](https://steamcommunity.com/sharedfiles/filedetails/?id=326332456)
+- [gm_functional_flatgrass3](https://steamcommunity.com/sharedfiles/filedetails/?id=1447523209)
+- [gm_genesis](https://steamcommunity.com/sharedfiles/filedetails/?id=266666023)
+- [gm_mobenix_v3_final](https://steamcommunity.com/sharedfiles/filedetails/?id=140618773)
+- [rp_rockford_open](https://steamcommunity.com/sharedfiles/filedetails/?id=625091269)
+- [rp_southside](https://steamcommunity.com/sharedfiles/filedetails/?id=2010286798)
 
 # Planned Support:
-- gm_functional_flatgrass3
-- gm_genesis
-- gm_mobenix_v3_final
-- gm_valley
-- rp_rockford_open
 - rp_1944berlin_v1
 - rp_stalingrad_gamizer
-- rp_downtown_night_v2
-- rp_unioncity_day
+- rp_unioncity*
 - gm_goldencity*
 - gm_york
-- rp_southside
-- rp_unioncity
 
 # Not Supported:
 Note: These maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
