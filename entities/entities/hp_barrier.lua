@@ -31,43 +31,36 @@ function ENT:Initialize()
 			phys:EnableMotion( false )
 		end
 
-		self.Position90 = false
-		local changedvec
+		local right = self:GetRight()
+		local pos = self:GetPos()
 		local ang = self:GetAngles()
-		if ang.y == 90 then
-			changedvec = Vector( 150, 0, 0 )
-			self.Position90 = true
-		else
-			changedvec = Vector( 0, 150, 0 )
-		end
 
 		local e = ents.Create( "prop_dynamic" )
 		e:SetModel( self:GetModel() )
-		e:SetPos( self:GetPos() + changedvec )
-		e:SetAngles( self:GetAngles() )
+		e:SetPos( pos + right * 150 )
+		e:SetAngles( ang )
 		e:SetParent( self )
 		e:Spawn()
 
 		local e2 = ents.Create( "prop_dynamic" )
 		e2:SetModel( self:GetModel() )
-		e2:SetPos( self:GetPos() - changedvec )
-		e2:SetAngles( self:GetAngles() )
+		e2:SetPos( pos - right * 150 )
+		e2:SetAngles( ang )
 		e2:SetParent( self )
 		e2:Spawn()
 	end
 end
 
 if SERVER then
+	local vec1 = Vector( -180, -15, 0 )
+	local vec2 = Vector( 180, 15, 50 )
 	function ENT:Think()
 		local pos1, pos2
-		if self.Position90 then
-			pos1 = Vector( -180, -15, 0 )
-			pos2 = Vector( 180, 15, 50 )
-		else
-			pos1 = Vector( -15, -180, 0 )
-			pos2 = Vector( 15, 180, 50 )
-		end
-		for k,v in pairs( ents.FindInBox( self:GetPos() + pos1, self:GetPos() + pos2 ) ) do
+		local right = self:GetRight()
+		local pos = self:GetPos()
+		pos1 = pos + right + vec1
+		pos2 = pos + right + vec2
+		for k,v in pairs( ents.FindInBox( pos1, pos2 ) ) do
 			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) then
 				local driver = v:GetDriver()
 				if driver.CutCooldown and driver.CutCooldown > CurTime() then return end

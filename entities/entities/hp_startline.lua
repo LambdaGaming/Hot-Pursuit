@@ -49,7 +49,7 @@ function ENT:StartTouch( ent )
 		local driver
 		if ent:GetClass() == "gmod_sent_vehicle_fphysics_wheel" then --Simpfhy's support
 			local parent = ent:GetBaseEnt()
-			if IsValid( parent ) then
+			if IsValid( parent ) and parent.DriverSeat and IsValid( parent.DriverSeat:GetDriver() ) then
 				driver = parent.DriverSeat:GetDriver()
 			end
 		else

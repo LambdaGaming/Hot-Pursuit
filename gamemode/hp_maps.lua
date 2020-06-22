@@ -8,9 +8,9 @@ HotPursuitMaps["rp_rockford_v2b"] = { --Example of a full feature map
 		Name = "Standard",
 		Description = "Standard track layout.",
 		BlockSpawns = { --Positions of the barriers that prevent racers from going off-course, each barrier has 2 extra barriers spawned on either side of it
-			{ vector_origin, angle_zero }, --Angle yaw must be either 0 or 90
+			{ vector_origin, angle_zero },
 		},
-		StartPos = { --Until the angles bug is fixed, players will have a physical line that they'll start behind
+		StartPos = { --Position of the starting line
 			Pos = vector_origin,
 			Ang = angle_zero
 		},
