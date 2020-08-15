@@ -11,6 +11,7 @@ include( "hp_config.lua" )
 RacerTable = {}
 CopTable = {}
 FinishedPly = {}
+CompletedRaces = 0
 
 function GM:PlayerLoadout( ply )
 	local DefaultWeapons = {
@@ -412,6 +413,26 @@ function EndRace( forced, timed )
 	FinishedPly = {}
 	RacerTable = {}
 	CopTable = {}
+	CompletedRaces = CompletedRaces + 1
+	if HP_CONFIG_RACES_UNTIL_MAP_CHANGE > 0 and CompletedRaces >= HP_CONFIG_RACES_UNTIL_MAP_CHANGE then
+		HPNotifyAll( "The map will be changed to a random supported map in 10 seconds." )
+		timer.Simple( 10, function()
+			local supported = {}
+			local current = {}
+			local currentmaps = file.Find( "maps/*.bsp", "GAME" )
+			for k,v in pairs( currentmaps ) do
+				v = string.GetFileFromFilename( v )
+				v = string.StripExtension( v )
+				table.insert( current, v )
+			end
+			for k,v in pairs( current ) do
+				for a,b in pairs( HP_CONFIG_SUPPORTED_MAPS ) do
+					if v == b then table.insert( supported, v ) end
+				end
+			end
+			RunConsoleCommand( "changelevel", table.Random( supported ) )
+		end )
+	end
 end
 
 function Disqualify( ply, reason )

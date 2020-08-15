@@ -35,6 +35,8 @@ HP_CONFIG_MINE_RANGE = 30 --Range in hammer units of the mines
 
 HP_CONFIG_MINE_MAGNITUDE = 50 --Magnitude of the mines, includes both damage and physics forces
 
+HP_CONFIG_RACES_UNTIL_MAP_CHANGE = 1 --Number of races that need to be completed before the map changes automatically; set to 0 to disable
+
 --Advanced config, don't touch anything here unless you know what you're doing.
 --Changing values here won't do much unless you change the core code to reflect your changes here.
 HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to race with
@@ -81,4 +83,21 @@ HP_CONFIG_RACE_MODES = { --Allows admins to change how the races are run
 		UseBeacons = true,
 		UseMines = true --Whether cops should spawn with mines or not
 	}
+}
+
+HP_CONFIG_SUPPORTED_MAPS = { --List of supported maps; used by the random map chooser
+	"rp_rockford_v2b",
+	"rp_evocity2_v5p",
+	"rp_florida_v2",
+	"rp_truenorth_v1a",
+	"rp_newexton2_v4h",
+	"gm_bigcity",
+	"gm_bluehills_test3",
+	"gm_flatgrass_abs_v3c",
+	"gm_fork",
+	"gm_functional_flatgrass3",
+	"gm_genesis",
+	"gm_mobenix_v3_final",
+	"rp_rockford_open",
+	"rp_southside"
 }
