@@ -37,6 +37,8 @@ HP_CONFIG_MINE_MAGNITUDE = 50 --Magnitude of the mines, includes both damage and
 
 HP_CONFIG_RACES_UNTIL_MAP_CHANGE = 1 --Number of races that need to be completed before the map changes automatically; set to 0 to disable
 
+HP_CONFIG_ONLY_SUPPORTED_MAPS = false --Whether or not the random map chooser should only look for officially supported maps
+
 --Advanced config, don't touch anything here unless you know what you're doing.
 --Changing values here won't do much unless you change the core code to reflect your changes here.
 HP_CONFIG_VEHICLE_CLASSES = { --Classes of vehicles that players are allowed to race with
