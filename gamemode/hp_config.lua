@@ -35,7 +35,7 @@ HP_CONFIG_MINE_RANGE = 30 --Range in hammer units of the mines
 
 HP_CONFIG_MINE_MAGNITUDE = 50 --Magnitude of the mines, includes both damage and physics forces
 
-HP_CONFIG_RACES_UNTIL_MAP_CHANGE = 1 --Number of races that need to be completed before the map changes automatically; set to 0 to disable
+HP_CONFIG_RACES_UNTIL_MAP_CHANGE = 5 --Number of races that need to be completed before the map changes automatically; set to 0 to disable
 
 HP_CONFIG_ONLY_SUPPORTED_MAPS = false --Whether or not the random map chooser should only look for officially supported maps
 
