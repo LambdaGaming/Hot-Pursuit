@@ -29,6 +29,12 @@ HP_CONFIG_RIFLES = { --Rifles to randomly pick from on the nightmare mode
 	"weapon_ar2"
 }
 
+HP_CONFIG_AMMO = {
+	{ "pistol", 500 },
+	{ "smg1", 500 },
+	{ "ar2", 500 }
+}
+
 HP_CONFIG_BEACON_TIME = 30 --Time in seconds that each beacon lasts after being placed
 
 HP_CONFIG_MINE_RANGE = 30 --Range in hammer units of the mines

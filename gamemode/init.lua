@@ -180,7 +180,7 @@ function StartRace( type, timelimit )
 	local maptable = HotPursuitMaps[game.GetMap()] or {}
 	local mapconfig = maptable[type] or {}
 	local racemode = GetGlobalInt( "RaceMode" )
-	for k,v in pairs( player.GetAll() ) do
+	for k,v in ipairs( player.GetAll() ) do
 		if v:Team() != TEAM_NONE.ID and !v:InVehicle() then
 			HPNotifyAll( "Attempted to start a race but not all players are in their vehicles!" )
 			return
@@ -216,7 +216,7 @@ function StartRace( type, timelimit )
 		else
 			HPNotifyAll( "GO!" )
 			HPPlaySound( nil, "plats/elevbell1.wav", true )
-			for k,v in pairs( player.GetAll() ) do
+			for k,v in ipairs( player.GetAll() ) do
 				if IsValid( v ) and v:InVehicle() then
 					local veh = v:GetVehicle()
 					local racemode = GetGlobalInt( "RaceMode" )
@@ -232,11 +232,17 @@ function StartRace( type, timelimit )
 					if racemode == 3 then
 						if v:Team() != TEAM_NONE.ID then
 							v:Give( table.Random( HP_CONFIG_PISTOLS ) )
+							for a,b in pairs( HP_CONFIG_AMMO ) do
+								v:SetAmmo( b[2], b[1] )
+							end
 						end
 					end
 					if racemode == 4 then
 						if v:Team() != TEAM_NONE.ID then
 							v:Give( table.Random( HP_CONFIG_RIFLES ) )
+							for a,b in pairs( HP_CONFIG_AMMO ) do
+								v:SetAmmo( b[2], b[1] )
+							end
 						end
 					end
 
@@ -260,7 +266,7 @@ function StartRace( type, timelimit )
 			end
 			if GetGlobalBool( "TrackType" ) != 2 then
 				timer.Create( "DisqualifyTimer", 15, 1, function()
-					for k,v in pairs( player.GetAll() ) do
+					for k,v in ipairs( player.GetAll() ) do
 						if v:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, v ) then
 							Disqualify( v, "Failed to cross start line within 15 seconds of the race starting." )
 						end
@@ -374,7 +380,7 @@ local function GetWinners( normal )
 end
 
 function EndRace( forced, timed )
-	for k,v in pairs( ents.GetAll() ) do
+	for k,v in ipairs( ents.GetAll() ) do
 		local removedents = {
 			["hp_finishline"] = true,
 			["hp_startline"] = true,
@@ -626,7 +632,7 @@ end
 local TrackerCooldown = 0
 hook.Add( "Think", "HP_CarTracker", function()
 	if !GetGlobalBool( "RaceStarted" ) or TrackerCooldown > CurTime() then return end
-	for k,v in pairs( player.GetAll() ) do
+	for k,v in ipairs( player.GetAll() ) do
 		if IsValid( v ) and v:InVehicle() then
 			if v:Team() != TEAM_NONE.ID then
 				SaveVehPosAng( v )
