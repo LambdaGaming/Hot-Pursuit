@@ -55,13 +55,14 @@ if SERVER then
 	local vec1 = Vector( -180, -15, 0 )
 	local vec2 = Vector( 180, 15, 50 )
 	function ENT:Think()
+		if !GetGlobalBool( "RaceStarted" ) then return end
 		local pos1, pos2
 		local right = self:GetRight()
 		local pos = self:GetPos()
 		pos1 = pos + right + vec1
 		pos2 = pos + right + vec2
 		for k,v in pairs( ents.FindInBox( pos1, pos2 ) ) do
-			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) then
+			if IsValid( v ) and v:IsVehicle() and !v:GetNWBool( "IsAutomodSeat" ) and IsValid( v:GetDriver() ) and v:GetDriver():Team() == TEAM_RACER.ID then
 				local driver = v:GetDriver()
 				if driver.CutCooldown and driver.CutCooldown > CurTime() then return end
 				HPNotifyAll( "Possible track cutting from "..driver:Nick().."." )

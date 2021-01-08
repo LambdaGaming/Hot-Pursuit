@@ -1,5 +1,3 @@
-Note: An asterisk (*) at the end of a name indicates that all maps of that type are supported/unsupported. Use Ctrl + F to search for a map before suggesting it.
-
 # Currently Supported Maps:
 - [rp_rockford_v2b](https://steamcommunity.com/sharedfiles/filedetails/?id=622810630)
 - [rp_evocity2_v5p](https://steamcommunity.com/sharedfiles/filedetails/?id=538207599)
@@ -19,12 +17,11 @@ Note: An asterisk (*) at the end of a name indicates that all maps of that type 
 # Planned Support:
 - rp_1944berlin_v1
 - rp_stalingrad_gamizer
-- rp_unioncity*
-- gm_goldencity*
 - gm_york
+- rp_silentcartogropher
 
 # Not Supported:
-Note: These maps are officially unsupported by me, but you can still add any map to the config yourself if you think it'll work.
+ Maps with these prefixes are unsupported by me, but you can still add any map to the config yourself if you think it'll work. I'll accept a PR if it works out well enough.
 - rp_blackmesa_*
 - gm_underground_*
 - rnl_*
@@ -40,10 +37,7 @@ Note: These maps are officially unsupported by me, but you can still add any map
 - trash_*
 - ttt_*
 - zs_*
-- rp_bmrf
 - rp_city17_*
 - rp_sectorc_*
 - cinema_*
-- gm_city_blocks
-- gm_wick
 - gm_forest_*

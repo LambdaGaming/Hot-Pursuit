@@ -156,29 +156,57 @@ function HPPlaySound( ply, sound, broadcast )
 	net.Send( ply )
 end
 
-function PreRace( type )
-	if !HotPursuitMaps[game.GetMap()] then return end
-	SetGlobalBool( "PreRace", true )
-	local mapconfig = HotPursuitMaps[game.GetMap()][type]
-	if GetGlobalInt( "TrackType" ) == 3 then
-		local e = ents.Create( "hp_startline" )
-		e:SetPos( mapconfig.FinishPos.Pos )
-		e:SetAngles( mapconfig.FinishPos.Ang )
-		e:Spawn()
-	else
+local function SpawnRaceProps( type )
+	local maptable = HotPursuitMaps[game.GetMap()] or {}
+	local mapconfig = maptable[type] or {}
+	if GetGlobalInt( "TrackType" ) == 1 then
 		local e = ents.Create( "hp_startline" )
 		e:SetPos( mapconfig.StartPos.Pos )
 		e:SetAngles( mapconfig.StartPos.Ang )
 		e:Spawn()
+
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.FinishPos.Pos )
+		e:SetAngles( mapconfig.FinishPos.Ang )
+		e:Spawn()
+
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
+			e:Spawn()
+		end
+	elseif GetGlobalInt( "TrackType" ) == 3 then
+		local e = ents.Create( "hp_startline" )
+		e:SetPos( mapconfig.FinishPos.Pos )
+		e:SetAngles( mapconfig.FinishPos.Ang )
+		e:Spawn()
+
+		local e = ents.Create( "hp_finishline" )
+		e:SetPos( mapconfig.StartPos.Pos )
+		e:SetAngles( mapconfig.StartPos.Ang )
+		e:Spawn()
+
+		for k,v in ipairs( mapconfig.BlockSpawns ) do
+			local e = ents.Create( "hp_barrier" )
+			e:SetPos( v[1] )
+			e:SetAngles( v[2] )
+			e:Spawn()
+		end
 	end
+end
+
+function PreRace( type )
+	if !HotPursuitMaps[game.GetMap()] then return end
+	SetGlobalBool( "PreRace", true )
+	local mapconfig = HotPursuitMaps[game.GetMap()][type]
+	SpawnRaceProps( type )
 	HPNotifyAll( "The pre-race has started. Racers, get to the starting line, which is outlined in green, and wait for the race to begin." )
 	HPNotifyAll( "Cops, hide along the track and wait for racers to pass you." )
 end
 
 util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
-	local maptable = HotPursuitMaps[game.GetMap()] or {}
-	local mapconfig = maptable[type] or {}
 	local racemode = GetGlobalInt( "RaceMode" )
 	for k,v in ipairs( player.GetAll() ) do
 		if v:Team() != TEAM_NONE.ID and !v:InVehicle() then
@@ -279,47 +307,10 @@ function StartRace( type, timelimit )
 		end
 	end )
 
-	HPNotifyAll( "The race will begin soon!" )
-	
 	if !GetGlobalBool( "PreRace" ) then
-		if GetGlobalInt( "TrackType" ) == 3 then
-			local e = ents.Create( "hp_startline" )
-			e:SetPos( mapconfig.FinishPos.Pos )
-			e:SetAngles( mapconfig.FinishPos.Ang )
-			e:Spawn()
-		elseif GetGlobalInt( "TrackType" ) == 1 then
-			local e = ents.Create( "hp_startline" )
-			e:SetPos( mapconfig.StartPos.Pos )
-			e:SetAngles( mapconfig.StartPos.Ang )
-			e:Spawn()
-		end
+		SpawnRaceProps( type )
 	end
-
-	if GetGlobalInt( "TrackType" ) == 1 then
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.FinishPos.Pos )
-		e:SetAngles( mapconfig.FinishPos.Ang )
-		e:Spawn()
-
-		for k,v in ipairs( mapconfig.BlockSpawns ) do
-			local e = ents.Create( "hp_barrier" )
-			e:SetPos( v[1] )
-			e:SetAngles( v[2] )
-			e:Spawn()
-		end
-	elseif GetGlobalInt( "TrackType" ) == 3 then
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.StartPos.Pos )
-		e:SetAngles( mapconfig.StartPos.Ang )
-		e:Spawn()
-
-		for k,v in ipairs( mapconfig.BlockSpawns ) do
-			local e = ents.Create( "hp_barrier" )
-			e:SetPos( v[1] )
-			e:SetAngles( v[2] )
-			e:Spawn()
-		end
-	end
+	HPNotifyAll( "The race will begin soon!" )
 	net.Start( "HPPlayMusic" )
 	net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
 	net.Broadcast()

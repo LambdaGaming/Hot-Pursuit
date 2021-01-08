@@ -367,7 +367,7 @@ hook.Add( "PlayerButtonDown", "HP_ChangeTeam", function( ply, button )
 	local adminkey = GetConVar( "HP_AdminKey" ):GetInt()
 	if button == teamkey then
 		if GetGlobalBool( "RaceStarted" ) then
-			HPNotify( ply, "You cannot change teams while in a race!" )
+			HPNotify( "You cannot change teams while in a race!" )
 			return
 		end
 		OpenTeamMenu( ply )
@@ -375,7 +375,7 @@ hook.Add( "PlayerButtonDown", "HP_ChangeTeam", function( ply, button )
 	if button == adminkey then
 		if !ply:IsAdmin() then
 			local teamkeyname = language.GetPhrase( input.GetKeyName( teamkey ) )
-			HPNotify( ply, "Only admins can access this menu. If you are looking for the team selection menu, press "..teamkeyname.."." )
+			HPNotify( "Only admins can access this menu. If you are looking for the team selection menu, press "..teamkeyname.."." )
 			return
 		end
 		OpenAdminMenu( ply )
@@ -386,11 +386,11 @@ hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
 	if IsFirstTimePredicted() and ply:InVehicle() then
 		if key == GetConVar( "HP_ResetKey" ):GetInt() then
 			if !GetGlobalBool( "RaceStarted" ) then
-				HPNotify( ply, "You can only reset your vehicle during a race." )
+				HPNotify( "You can only reset your vehicle during a race." )
 				return
 			end
 			if ply.ButtonPressCool and ply.ButtonPressCool > CurTime() then
-				HPNotify( ply, "Please wait before resetting your car again." )
+				HPNotify( "Please wait before resetting your car again." )
 				return
 			end
 			net.Start( "ResetVehicle" )
@@ -401,9 +401,13 @@ hook.Add( "PlayerButtonDown", "HP_ResetVehicle", function( ply, key )
 end )
 
 local color_green = Color( 0, 255, 0 )
+local color_red = Color( 255, 0, 0 )
 hook.Add( "PreDrawHalos", "HP_StartLineHalo", function()
 	if GetGlobalBool( "PreRace" ) then
-		halo.Add( ents.FindByClass( "hp_startline" ), color_green, 1, 1, 3, true, true )
+		local getstart = ents.FindByClass( "hp_startline" )
+		local getend = ents.FindByClass( "hp_finishline" )
+		halo.Add( getstart, color_green, 1, 1, 3, true, true )
+		halo.Add( getend, color_red, 1, 1, 3, true, true )
 	end
 end )
 
