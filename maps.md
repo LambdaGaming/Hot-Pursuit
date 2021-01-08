@@ -13,12 +13,10 @@
 - [gm_mobenix_v3_final](https://steamcommunity.com/sharedfiles/filedetails/?id=140618773)
 - [rp_rockford_open](https://steamcommunity.com/sharedfiles/filedetails/?id=625091269)
 - [rp_southside](https://steamcommunity.com/sharedfiles/filedetails/?id=2010286798)
+- [gm_york](https://steamcommunity.com/sharedfiles/filedetails/?id=1727393665)
 
 # Planned Support:
-- rp_1944berlin_v1
-- rp_stalingrad_gamizer
-- gm_york
-- rp_silentcartogropher
+- None
 
 # Not Supported:
  Maps with these prefixes are unsupported by me, but you can still add any map to the config yourself if you think it'll work. I'll accept a PR if it works out well enough.
