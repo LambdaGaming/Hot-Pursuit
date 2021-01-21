@@ -142,6 +142,16 @@ local function OpenTeamMenu( ply )
 	ply.MenuOpen = true
 end
 
+local function FixStupidOffsetBug( index, max )
+	local fix
+	if index == 1 then
+		fix = max
+	else
+		fix = index - 1
+	end
+	return fix
+end
+
 local function OpenAdminMenu( ply )
 	local menu = vgui.Create( "DFrame" )
 	menu:SetTitle( "Hot Pursuit: Admin Menu" )
@@ -205,14 +215,8 @@ local function OpenAdminMenu( ply )
 		racemodes:AddChoice( v.Name, k )
 	end
 	racemodes.OnSelect = function( self, index, value )
-		local fix
-		if index == 1 then --For some reason the indexes get offset by 1 when selected
-			fix = 4
-		else
-			fix = index - 1
-		end
 		net.Start( "HP_SetRaceMode" )
-		net.WriteInt( fix, 32 )
+		net.WriteInt( FixStupidOffsetBug( index, 4 ), 32 ) --For some reason the indexes get offset by 1 when selected
 		net.SendToServer()
 	end
 
@@ -239,6 +243,11 @@ local function OpenAdminMenu( ply )
 		end
 	else
 		tracklayouts:AddChoice( layoutname, -1 )
+	end
+	tracklayouts.OnSelect = function( self, index, value )
+		net.Start( "HP_SetTrackLayout" )
+		net.WriteInt( index, 32 )
+		net.SendToServer()
 	end
 
 	local timercheck = vgui.Create( "DCheckBoxLabel", menu )
@@ -323,17 +332,6 @@ surface.CreateFont( "HPTimer", {
 	weight = 600
 } )
 
-local function GetTeamName( ply )
-	local team = ply:Team()
-	if team == TEAM_RACER.ID then
-		return "Racer"
-	end
-	if team == TEAM_POLICE.ID then
-		return "Police"
-	end
-	return "Spectator"
-end
-
 hook.Add( "HUDPaint", "HP_MainHUD", function()
 	if GetGlobalBool( "RaceStarted" ) then
 		local RaceMode = HP_CONFIG_RACE_MODES[GetGlobalInt( "RaceMode" )].Name
@@ -346,8 +344,10 @@ hook.Add( "HUDPaint", "HP_MainHUD", function()
 			TrackType = "Free Roam"
 			TrackLayout = "None"
 		end
-		local ply = LocalPlayer()
 
+		local ply = LocalPlayer()
+		local PlyLaps = ply:GetNWInt( "HP_Laps" )
+		local TotalLaps = GetTotalLaps()
 		draw.RoundedBoxEx( 14, 0, 0, ScrW(), 40, MenuColor, false, false, true, true )
 		draw.DrawText( "Race Mode: "..RaceMode, "HPTimer", ScrW() / 2 - 800, 10 )
 		draw.DrawText( "Track Type: "..TrackType, "HPTimer", ScrW() / 2 - 400, 10 )
@@ -356,7 +356,7 @@ hook.Add( "HUDPaint", "HP_MainHUD", function()
 		else
 			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", ScrW() / 2 - 45, 10 )
 		end
-		draw.DrawText( "Your Team: "..GetTeamName( ply ), "HPTimer", ScrW() / 2 + 300, 10 )
+		draw.DrawText( "Lap: "..PlyLaps.."/"..TotalLaps, "HPTimer", ScrW() / 2 + 300, 10 )
 		draw.DrawText( "Track Layout: "..TrackLayout, "HPTimer", ScrW() / 2 + 600, 10 )
 	end
 end )
@@ -413,14 +413,14 @@ end )
 
 local mat = Material( "icon16/bullet_error.png" )
 local function BeaconImage()
-	local pl = LocalPlayer()
-	local shootPos = pl:GetShootPos()
+	local ply = LocalPlayer()
+	local shootPos = ply:GetShootPos()
 	local plypos = vector_origin
-	local hisPos = pl:GetShootPos()
-	if pl:Team() == TEAM_POLICE.ID then
+	local hisPos = ply:GetShootPos()
+	if ply:Team() == TEAM_POLICE.ID then
 		local pos = hisPos - shootPos
 		local unitPos = pos:GetNormalized()
-		local trace = util.QuickTrace( shootPos, pos, pl )
+		local trace = util.QuickTrace( shootPos, pos, ply )
 		local beacon = ents.FindByClass( "hp_beacon" )[1]
 		if !IsValid( beacon ) then return end
 		plypos = beacon:GetPos()

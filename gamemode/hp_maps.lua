@@ -45,13 +45,13 @@ if SERVER then
 		MsgC( color_blue, text )
 	end
 
-	function ReadCurrentMap( suppress )
+	function ReadCurrentMap( suppress, force )
 		if !HotPursuitMaps then
 			PrintToConsole( "\nError: It seems like the main map table doesn't exist. The gamemode will not work without it. Did you mess with something you weren't supposed to?\n", suppress )
 			return
 		end
 		local map = game.GetMap()
-		if !HotPursuitMaps[map] then
+		if !HotPursuitMaps[map] or force then
 			PrintToConsole( "\nInfo for this map not found. Attempting to load from file...\n", suppress )
 			local infoextra = file.Read( "hotpursuit/maps/"..map..'.json', "DATA" )
 			local info = file.Read( "gamemodes/hotpursuit/content/data/hotpursuit/maps/"..map..".json", "GAME" )
@@ -72,6 +72,11 @@ if SERVER then
 				convert = util.JSONToTable( infoextra )
 			end
 			HotPursuitMaps[map] = convert
+			if force then
+				net.Start( "HP_SendMapInfo" )
+				net.WriteTable( HotPursuitMaps[map] )
+				net.Broadcast()
+			end
 			PrintToConsole( "\nSuccessfully loaded map info from file.\n", suppress )
 			return
 		end

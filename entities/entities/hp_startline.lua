@@ -45,9 +45,10 @@ end
 
 function ENT:StartTouch( ent )
 	if CLIENT or !GetGlobalBool( "RaceStarted" ) then return end
-	if HP_CONFIG_VEHICLE_CLASSES[ent:GetClass()] then
+	local class = ent:GetClass()
+	if HP_CONFIG_VEHICLE_CLASSES[class] then
 		local driver
-		if ent:GetClass() == "gmod_sent_vehicle_fphysics_wheel" then --Simpfhy's support
+		if class == "gmod_sent_vehicle_fphysics_wheel" then --Simpfhy's support
 			local parent = ent:GetBaseEnt()
 			if IsValid( parent ) and parent.DriverSeat and IsValid( parent.DriverSeat:GetDriver() ) then
 				driver = parent.DriverSeat:GetDriver()
@@ -55,12 +56,40 @@ function ENT:StartTouch( ent )
 		else
 			driver = ent:GetDriver()
 		end
-		if IsValid( driver ) and driver:Team() == TEAM_RACER.ID and !table.HasValue( RacerTable, driver ) then
+		if IsValid( driver ) and driver:Team() == TEAM_RACER.ID then
+			local laps = GetTotalLaps()
 			if GetGlobalBool( "RaceCountdown" ) then
 				Disqualify( driver, "Crossing starting line during countdown." )
 				return
 			end
-			table.insert( RacerTable, driver )
+			if driver.LapCooldown and driver.LapCooldown > CurTime() then return end
+			if !table.HasValue( RacerTable, driver ) then
+				table.insert( RacerTable, driver )
+			end
+			driver:SetNWInt( "HP_Laps", math.Clamp( driver:GetNWInt( "HP_Laps" ) + 1, 0, laps + 1 ) )
+			driver.LapCooldown = CurTime() + 10
+			if driver:GetNWInt( "HP_Laps" ) == laps + 1 and laps > 1 then
+				if driver:Team() != TEAM_RACER.ID or driver.Finished then return end
+				driver.Finished = true
+				HPNotifyAll( driver:Nick().." has finished!" )
+				table.insert( FinishedPly, driver )
+				table.RemoveByValue( RacerTable, driver )
+
+				if !timer.Exists( "FinishTimer" ) then
+					timer.Create( "FinishTimer", HP_CONFIG_FINISH_TIMER, 1, function() end )
+				end
+
+				for k,v in ipairs( player.GetAll() ) do
+					if v:Team() == TEAM_RACER.ID and !v.Finished then
+						return
+					end
+				end
+
+				local first = FinishedPly[1]
+				HPNotifyAll( first:Nick().." has won the race!" )
+				EndRace()
+				timer.Remove( "FinishTimer" )
+			end
 		end
 	end
 end

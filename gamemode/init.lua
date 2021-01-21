@@ -157,18 +157,20 @@ function HPPlaySound( ply, sound, broadcast )
 end
 
 local function SpawnRaceProps( type )
-	local maptable = HotPursuitMaps[game.GetMap()] or {}
-	local mapconfig = maptable[type] or {}
+	local maptable = HotPursuitMaps[game.GetMap()]
+	local mapconfig = maptable[type]
 	if GetGlobalInt( "TrackType" ) == 1 then
 		local e = ents.Create( "hp_startline" )
 		e:SetPos( mapconfig.StartPos.Pos )
 		e:SetAngles( mapconfig.StartPos.Ang )
 		e:Spawn()
 
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.FinishPos.Pos )
-		e:SetAngles( mapconfig.FinishPos.Ang )
-		e:Spawn()
+		if mapconfig.FinishPos then
+			local e = ents.Create( "hp_finishline" )
+			e:SetPos( mapconfig.FinishPos.Pos )
+			e:SetAngles( mapconfig.FinishPos.Ang )
+			e:Spawn()
+		end
 
 		for k,v in ipairs( mapconfig.BlockSpawns ) do
 			local e = ents.Create( "hp_barrier" )
@@ -177,15 +179,24 @@ local function SpawnRaceProps( type )
 			e:Spawn()
 		end
 	elseif GetGlobalInt( "TrackType" ) == 3 then
-		local e = ents.Create( "hp_startline" )
-		e:SetPos( mapconfig.FinishPos.Pos )
-		e:SetAngles( mapconfig.FinishPos.Ang )
-		e:Spawn()
+		if mapconfig.FinishPos then
+			local e = ents.Create( "hp_startline" )
+			e:SetPos( mapconfig.FinishPos.Pos )
+			e:SetAngles( mapconfig.FinishPos.Ang )
+			e:Spawn()
+		end
 
-		local e = ents.Create( "hp_finishline" )
-		e:SetPos( mapconfig.StartPos.Pos )
-		e:SetAngles( mapconfig.StartPos.Ang )
-		e:Spawn()
+		if !mapconfig.FinishPos then
+			local e = ents.Create( "hp_startline" )
+			e:SetPos( mapconfig.StartPos.Pos )
+			e:SetAngles( mapconfig.StartPos.Ang )
+			e:Spawn()
+		else
+			local e = ents.Create( "hp_finishline" )
+			e:SetPos( mapconfig.StartPos.Pos )
+			e:SetAngles( mapconfig.StartPos.Ang )
+			e:Spawn()
+		end
 
 		for k,v in ipairs( mapconfig.BlockSpawns ) do
 			local e = ents.Create( "hp_barrier" )
@@ -371,14 +382,14 @@ local function GetWinners( normal )
 end
 
 function EndRace( forced, timed )
+	local removedents = {
+		["hp_finishline"] = true,
+		["hp_startline"] = true,
+		["automod_spikestrip"] = true,
+		["hp_barrier"] = true,
+		["hp_mine"] = true
+	}
 	for k,v in ipairs( ents.GetAll() ) do
-		local removedents = {
-			["hp_finishline"] = true,
-			["hp_startline"] = true,
-			["automod_spikestrip"] = true,
-			["hp_barrier"] = true,
-			["hp_mine"] = true
-		}
 		if v:IsVehicle() then v.Finished = false end
 		if removedents[v:GetClass()] then v:Remove() end
 		if v:IsPlayer() then
@@ -388,6 +399,7 @@ function EndRace( forced, timed )
 			v:StripWeapons()
 			hook.Run( "PlayerLoadout", v )
 			v.VehResetPos = {}
+			v:SetNWInt( "HP_Laps", 0 )
 		end
 	end
 	SetGlobalBool( "PreRace", false )
@@ -561,6 +573,16 @@ local function RaceModeCommand( len, ply )
 end
 net.Receive( "HP_SetRaceMode", RaceModeCommand )
 
+util.AddNetworkString( "HP_SetTrackLayout" )
+local function SetTrackLayout( len, ply )
+	if !HotPursuitMaps or !HotPursuitMaps[game.GetMap()] then return end
+	local layout = net.ReadInt( 32 )
+	SetGlobalInt( "TrackLayout", layout )
+	local name = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )].Name
+	HPNotifyAll( "The track layout has been changed to "..name.."." )
+end
+net.Receive( "HP_SetTrackLayout", SetTrackLayout )
+
 hook.Add( "PlayerLeaveVehicle", "HP_LeaveDisqualify", function( ply, veh )
 	if GetGlobalBool( "RaceStarted" ) and GetGlobalInt( "RaceMode" ) == 1 and ply:Team() != TEAM_NONE.ID then
 		Disqualify( ply, "Leaving vehicle during race." )
@@ -677,7 +699,7 @@ hook.Add( "InitPostEntity", "HP_InitPostEntity", function()
 		end
 	)
 	if !isnumber( version ) then
-		MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. Either Github is down or OP screwed up again.\n" )
+		MsgC( color_blue, "\nWarning: Hot Pursuit version check failed to load. GitHub responded but not with the expected data.\n" )
 		return
 	end
 	if HP_VERSION < version then

@@ -62,3 +62,12 @@ TEAM_POLICE = {
 		"models/player/swat.mdl"
 	}
 }
+
+function GetTotalLaps()
+	if !HotPursuitMaps or !HotPursuitMaps[game.GetMap()] then return end
+	local layout = HotPursuitMaps[game.GetMap()][GetGlobalInt( "TrackLayout" )]
+	if GetGlobalInt( "TrackType" ) == 2 or layout.FinishPos then
+		return 1
+	end
+	return layout.Laps or 2 --Default to 2 laps if the race is circuit and a lap number isn't specified
+end

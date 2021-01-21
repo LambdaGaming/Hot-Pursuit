@@ -70,7 +70,7 @@ function ENT:StartTouch( ent )
 			timer.Create( "FinishTimer", HP_CONFIG_FINISH_TIMER, 1, function() end )
 		end
 
-		for k,v in pairs( player.GetAll() ) do
+		for k,v in ipairs( player.GetAll() ) do
 			if v:Team() == TEAM_RACER.ID and !v.Finished then
 				return
 			end

@@ -107,5 +107,6 @@ HP_CONFIG_SUPPORTED_MAPS = { --List of supported maps; used by the random map ch
 	"gm_genesis",
 	"gm_mobenix_v3_final",
 	"rp_rockford_open",
-	"rp_southside"
+	"rp_southside",
+	"gm_york"
 }
