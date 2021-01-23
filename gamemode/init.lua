@@ -189,7 +189,7 @@ local function SpawnRaceProps( type )
 		if !mapconfig.FinishPos then
 			local e = ents.Create( "hp_startline" )
 			e:SetPos( mapconfig.StartPos.Pos )
-			e:SetAngles( mapconfig.StartPos.Ang )
+			e:SetAngles( mapconfig.StartPos.Ang + Angle( 0, 180, 0 ) )
 			e:Spawn()
 		else
 			local e = ents.Create( "hp_finishline" )

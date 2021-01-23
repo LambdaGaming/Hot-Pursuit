@@ -109,7 +109,7 @@
 		"Description": "Starts at spawn, goes around outskirts, then comes back to spawn.",
 		"Name": "Outskirts Circuit",
 		"StartPos": {
-			"Ang": "{0 180 0}",
+			"Ang": "{0 0 0}",
 			"Pos": "[-6240 -6815 0]"
 		},
 		"BlockSpawns": [
