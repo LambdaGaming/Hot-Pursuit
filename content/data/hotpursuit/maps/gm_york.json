@@ -80,5 +80,27 @@
 				"{0 0 0}"
 			]
 		]
+	},
+	{
+		"Description": "Starts at the highway ramp closest to spawn, loops around the entire highway.",
+		"Name": "Highway Loop",
+		"StartPos": {
+			"Ang": "{0 45 0}",
+			"Pos": "[-1724 -6488 576]"
+		},
+		"BlockSpawns": [
+			[
+				"[-1642 -5896 576]",
+				"{0 135 0}"
+			],
+			[
+				"[-12763 -11265 576]",
+				"{0 0 0}"
+			],
+			[
+				"[-3249 6434 576]",
+				"{0 0 0}"
+			]
+		]
 	}
 ]

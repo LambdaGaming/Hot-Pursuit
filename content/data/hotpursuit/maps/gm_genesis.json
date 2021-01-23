@@ -48,5 +48,23 @@
 				"{0 0 0}"
 			]
 		]
+	},
+	{
+		"Description": "Loops around the dirt track below the map.",
+		"Name": "Dirt Rally",
+		"StartPos": {
+			"Ang": "{0 0 0}",
+			"Pos": "[-150 8463 -15071]"
+		},
+		"BlockSpawns": [
+			[
+				"[-5082 -4482 -14368]",
+				"{0 90 0}"
+			],
+			[
+				"[-5509 -4493 -14363]",
+				"{0 90 0}"
+			]
+		]
 	}
 ]
