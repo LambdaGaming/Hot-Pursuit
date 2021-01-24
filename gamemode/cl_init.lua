@@ -326,13 +326,43 @@ net.Receive( "HP_SendMapInfo", function()
 	HotPursuitMaps[map] = info
 end )
 
+net.Receive( "HP_RaceCountdown", function()
+	local ply = LocalPlayer()
+	ply.RaceCountdown = HP_CONFIG_PRERACE_TIMER
+	surface.PlaySound( "buttons/blip1.wav" )
+	timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
+		if ply.RaceCountdown > 1 then
+			surface.PlaySound( "buttons/blip1.wav" )
+		elseif ply.RaceCountdown == 1 then
+			surface.PlaySound( "plats/elevbell1.wav" )
+		end
+		ply.RaceCountdown = ply.RaceCountdown - 1
+	end )
+end )
+
 surface.CreateFont( "HPTimer", {
 	font = "Arial",
 	size = 16,
 	weight = 600
 } )
 
+surface.CreateFont( "HPCountdown", {
+	font = "Arial",
+	size = 72,
+	weight = 600
+} )
+
 hook.Add( "HUDPaint", "HP_MainHUD", function()
+	local ply = LocalPlayer()
+	local width = ScrW()
+	local height = ScrH()
+	if ply.RaceCountdown and ply.RaceCountdown >= 0 then
+		if ply.RaceCountdown > 0 then
+			draw.DrawText( ply.RaceCountdown, "HPCountdown", width / 2, height / 2 )
+		else
+			draw.DrawText( "GO!", "HPCountdown", width / 2, height / 2 )
+		end
+	end
 	if GetGlobalBool( "RaceStarted" ) then
 		local RaceMode = HP_CONFIG_RACE_MODES[GetGlobalInt( "RaceMode" )].Name
 		local TrackType
@@ -345,19 +375,18 @@ hook.Add( "HUDPaint", "HP_MainHUD", function()
 			TrackLayout = "None"
 		end
 
-		local ply = LocalPlayer()
 		local PlyLaps = ply:GetNWInt( "HP_Laps" )
 		local TotalLaps = GetTotalLaps()
-		draw.RoundedBoxEx( 14, 0, 0, ScrW(), 40, MenuColor, false, false, true, true )
-		draw.DrawText( "Race Mode: "..RaceMode, "HPTimer", ScrW() / 2 - 800, 10 )
-		draw.DrawText( "Track Type: "..TrackType, "HPTimer", ScrW() / 2 - 400, 10 )
+		draw.RoundedBoxEx( 14, 0, 0, width, 40, MenuColor, false, false, true, true )
+		draw.DrawText( "Race Mode: "..RaceMode, "HPTimer", width / 2 - 800, 10 )
+		draw.DrawText( "Track Type: "..TrackType, "HPTimer", width / 2 - 400, 10 )
 		if RaceTimer - CurTime() <= 0 then
-			draw.DrawText( "Race Timer: Disabled", "HPTimer", ScrW() / 2 - 45, 10 )
+			draw.DrawText( "Race Timer: Disabled", "HPTimer", width / 2 - 45, 10 )
 		else
-			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", ScrW() / 2 - 45, 10 )
+			draw.DrawText( "Race Timer: "..string.ToMinutesSeconds( RaceTimer - CurTime() ), "HPTimer", width / 2 - 45, 10 )
 		end
-		draw.DrawText( "Lap: "..PlyLaps.."/"..TotalLaps, "HPTimer", ScrW() / 2 + 300, 10 )
-		draw.DrawText( "Track Layout: "..TrackLayout, "HPTimer", ScrW() / 2 + 600, 10 )
+		draw.DrawText( "Lap: "..PlyLaps.."/"..TotalLaps, "HPTimer", width / 2 + 300, 10 )
+		draw.DrawText( "Track Layout: "..TrackLayout, "HPTimer", width / 2 + 600, 10 )
 	end
 end )
 

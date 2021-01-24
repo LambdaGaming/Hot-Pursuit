@@ -216,6 +216,7 @@ function PreRace( type )
 	HPNotifyAll( "Cops, hide along the track and wait for racers to pass you." )
 end
 
+util.AddNetworkString( "HP_RaceCountdown" )
 util.AddNetworkString( "HPPlayMusic" )
 function StartRace( type, timelimit )
 	local racemode = GetGlobalInt( "RaceMode" )
@@ -247,14 +248,14 @@ function StartRace( type, timelimit )
 
 	local countdown = HP_CONFIG_PRERACE_TIMER
 	SetGlobalBool( "RaceCountdown", true )
+	timer.Simple( 1, function()
+		net.Start( "HP_RaceCountdown" )
+		net.Broadcast()
+	end )
 	timer.Create( "RaceCountdown", 1, HP_CONFIG_PRERACE_TIMER + 1, function()
 		if countdown > 0 then
-			HPNotifyAll( tostring( countdown ) )
-			HPPlaySound( nil, "buttons/blip1.wav", true )
 			countdown = countdown - 1
 		else
-			HPNotifyAll( "GO!" )
-			HPPlaySound( nil, "plats/elevbell1.wav", true )
 			for k,v in ipairs( player.GetAll() ) do
 				if IsValid( v ) and v:InVehicle() then
 					local veh = v:GetVehicle()
@@ -422,7 +423,9 @@ function EndRace( forced, timed )
 	FinishedPly = {}
 	RacerTable = {}
 	CopTable = {}
-	CompletedRaces = CompletedRaces + 1
+	if !forced then
+		CompletedRaces = CompletedRaces + 1
+	end
 	if HP_CONFIG_RACES_UNTIL_MAP_CHANGE > 0 and CompletedRaces >= HP_CONFIG_RACES_UNTIL_MAP_CHANGE then
 		HPNotifyAll( "The map will be changed to a random supported map in 10 seconds." )
 		timer.Simple( 10, function()
