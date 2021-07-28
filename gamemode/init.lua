@@ -323,9 +323,11 @@ function StartRace( type, timelimit )
 		SpawnRaceProps( type )
 	end
 	HPNotifyAll( "The race will begin soon!" )
-	net.Start( "HPPlayMusic" )
-	net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
-	net.Broadcast()
+	if !table.IsEmpty( HP_CONFIG_MUSIC_LIST ) then
+		net.Start( "HPPlayMusic" )
+		net.WriteString( table.Random( HP_CONFIG_MUSIC_LIST ) )
+		net.Broadcast()
+	end
 end
 
 util.AddNetworkString( "HP_SyncTimer" )

@@ -5,7 +5,7 @@
 - Players can choose to race with or without police. Teams can be chosen by pressing F4.
 - The goal of the police is to eliminate racers by wrecking their cars (or killing them in the harder modes) before they can cross the finish line. During the pre-race, police should hide along the track and wait for players to pass them.
 - Players who don't choose a team will automatically be spectators. Teams cannot be changed during a race.
-- Admins control races. An optional timer can be toggled before starting a race. When the timer ends, the winners will be determined based on who all crossed the finish line. If the race has no timer, it will end once all racers have finished or have been elimiated.
+- Admins control races through a menu accessed by pressing F3. An optional timer can be toggled before starting a race. When the timer ends, the winners will be determined based on who all crossed the finish line. If the race has no timer, it will end once all racers have finished or have been elimiated.
 - Once the race starts, the start and finish lines and barriers will be spawned. Barriers are placed around the track, usually at intersections, to guide players to the finish line. If a player passes through a barrier, it will alert everyone that unfair track cutting may be occuring.
 - Admins can either choose to run the race as a closed course, a reversed closed course, or in free-roam mode. The free-roam mode racers to go wherever they want on the map. Because there is no finish line, the timer that is normally optional is required in free-roam mode.
 - Admins can also choose between different race modes that allow players to use weapons and tools to slow down or stop their opponents.
