@@ -706,6 +706,6 @@ hook.Add( "InitPostEntity", "HP_InitPostEntity", function()
 		return
 	end
 	if HP_VERSION < version then
-		MsgC( color_blue, "\nWarning: Hot Pursuit is out of date! Please update through the workshop or Github.\n" )
+		MsgC( color_blue, "\nWarning: Hot Pursuit is out of date! Please update to the latest version from https://github.com/LambdaGaming/Hot-Pursuit.\n" )
 	end
 end )
